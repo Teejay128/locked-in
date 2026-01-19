@@ -3,20 +3,19 @@ const UserModel = require("../models/userModel");
 const AIService = require("../services/aiService");
 
 exports.createEntry = async (req, res) => {
-	const { platform, platformId, content, imageUrls = [] } = req.body;
+	const { content, imageUrls = [] } = req.body;
+	const user = req.user;
 
-	if (!platform || !platformId || !content) {
-		return res.status(400).json({ error: "Missing required fields" });
+	if (!content) {
+		return res.status(400).json({ error: "Content required" });
 	}
 
 	try {
-		const userRef = await UserModel.getOrCreate(platform, platformId);
-
 		const [saveResult, socialPackage] = await Promise.all([
-			userRef.collection("entries").add({
+			user.ref.collection("entries").add({
 				content,
 				imageUrls,
-				source: platform,
+				source: "api",
 				createdAt: admin.firestore.FieldValue.serverTimestamp(),
 			}),
 			AIService.generateSocialPackage(content),
@@ -25,8 +24,7 @@ exports.createEntry = async (req, res) => {
 		// 3. Response
 		res.json({
 			success: true,
-			message: "Note saved!",
-			original: content,
+			message: "Entry saved!",
 			images: imageUrls,
 			social: socialPackage,
 		});

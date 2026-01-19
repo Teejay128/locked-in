@@ -3,7 +3,7 @@ const { googleAI } = require("@genkit-ai/google-genai");
 
 const ai = genkit({
 	plugins: [googleAI({ apiKey: process.env.GOOGLE_GENAI_API_KEY })],
-	model: googleAI.model("gemini-2.0-flash-lite"),
+	model: googleAI.model(process.env.GEMINI_MODEL),
 });
 
 async function generateSocialContent(originalText, platform) {

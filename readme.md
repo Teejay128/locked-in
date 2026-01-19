@@ -7,3 +7,7 @@ Work on AI speed improvements for journalting API
 
 
 Handle image upload on the frontend part
+
+
+
+Implement platform recognition so we can do graph dashboards like waka time
