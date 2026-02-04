@@ -4,6 +4,7 @@ require("dotenv").config();
 
 const journalRouter = require("./routes/journalRouter");
 const toolsRouter = require("./routes/toolsRouter");
+const authRouter = require("./routes/authRouter")
 
 const app = express();
 
@@ -13,6 +14,7 @@ app.use(express.json()); // Parse JSON bodies
 // Register Routes
 app.use("/journal", journalRouter);
 app.use("/tools", toolsRouter);
+app.use("/auth", authRouter)
 
 app.get("/", (req, res) => {
 	res.send("Motivation API is running 🚀");

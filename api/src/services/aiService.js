@@ -1,9 +1,17 @@
 const { genkit } = require("genkit");
 const { googleAI } = require("@genkit-ai/google-genai");
 
+const apiKey = process.env.GOOGLE_GENAI_API_KEY; // this varible doesn't even exist I guess
+const modelName = process.env.GEMINI_MODEL;
+
+if (!modelName) {
+	console.error("❌ ERROR: GEMINI_MODEL environment variable is not set!");
+	process.exit(1); // Kill the app immediately with a clear message
+}
+
 const ai = genkit({
-	plugins: [googleAI({ apiKey: process.env.GOOGLE_GENAI_API_KEY })],
-	model: googleAI.model(process.env.GEMINI_MODEL),
+	plugins: [googleAI({ apiKey })],
+	model: googleAI.model(modelName),
 });
 
 async function generateSocialContent(originalText, platform) {

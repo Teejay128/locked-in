@@ -1,6 +1,6 @@
 const { Router } = require("express");
 const journalController = require("../controllers/journalController");
-const validateApiKey = require("../middleware/authMiddleware");
+const {validateApiKey} = require("../middleware/authMiddleware");
 
 const journalRouter = Router();
 

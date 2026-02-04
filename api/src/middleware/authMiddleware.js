@@ -1,6 +1,6 @@
-const { db } = require("../config/firebase");
+const { db, admin } = require("../config/firebase");
 
-const validateApiKey = async (req, res, next) => {
+exports.validateApiKey = async (req, res, next) => {
 	// 1. Get the Key from Headers
 	const apiKey = req.headers["x-api-key"];
 
@@ -39,4 +39,19 @@ const validateApiKey = async (req, res, next) => {
 	}
 };
 
-module.exports = validateApiKey;
+exports.validateFirebaseToken = async (req, res, next) => {
+	const authHeader = req.headers.authorization;
+	if (!authHeader || !authHeader.startsWith("Bearer ")) {
+		return res.status(401).json({ error: "Missing Auth Token" });
+	}
+
+	const token = authHeader.split("Bearer ")[1];
+
+	try {
+		const decodedToken = await admin.auth().verifyIdToken(token);
+		req.uid = decodedToken.uid; // Attach UID to request
+		next();
+	} catch (error) {
+		res.status(403).json({ error: "Invalid Token" });
+	}
+};
