@@ -1,12 +1,18 @@
-const { onRequest } = require("firebase-functions/v2/https");
-const { onSchedule } = require("firebase-functions/v2/scheduler");
-const { VertexAI } = require("@google-cloud/vertexai");
+const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 const logger = require("firebase-functions/logger");
 const admin = require("firebase-admin");
-const { onDocumentCreated } = require("firebase-functions/v2/firestore");
+const functions = require("firebase-functions/v1");
+
+const crypto = require("crypto");
 
 admin.initializeApp();
 const db = admin.firestore();
+
+function getYesterdayDate(dateString) {
+	const date = new Date(dateString);
+	date.setDate(date.getDate() - 1);
+	return date.toISOString().split("T")[0];
+}
 
 exports.onEntryCreated = onDocumentCreated(
 	"users/{userId}/entries/{entryId}",
@@ -58,8 +64,32 @@ exports.onEntryCreated = onDocumentCreated(
 	},
 );
 
-function getYesterdayDate(dateString) {
-	const date = new Date(dateString);
-	date.setDate(date.getDate() - 1);
-	return date.toISOString().split("T")[0];
-}
+exports.onUserSignUp = functions.auth.user().onCreate(async (user) => {
+	const { uid, email } = user;
+
+	let defaultUsername = email
+		? email.split("@")[0]
+		: "User_" + uid.substring(0, 5);
+	const apiKey = "lock_in_" + crypto.randomBytes(16).toString("hex");
+
+	// Default Data
+	const newProfile = {
+		email: email,
+		username: defaultUsername,
+		usernameIsDefault: true,
+		apiKey: apiKey,
+		createdAt: admin.firestore.FieldValue.serverTimestamp(),
+
+		currentStreak: 0,
+		totalEntries: 0,
+		tier: "free",
+		platform: "unknown",
+	};
+
+	try {
+		await db.collection("users").doc(uid).set(newProfile);
+		console.log(`Profile initialized for ${defaultUsername}`);
+	} catch (error) {
+		console.error("Error creating user profile:", error);
+	}
+});
