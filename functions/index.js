@@ -1,12 +1,18 @@
-const { onDocumentCreated } = require("firebase-functions/v2/firestore");
-const logger = require("firebase-functions/logger");
 const admin = require("firebase-admin");
 const functions = require("firebase-functions/v1");
+const logger = require("firebase-functions/logger");
 
-const crypto = require("crypto");
+const { FieldValue } = require("firebase-admin/firestore");
+const { onDocumentCreated } = require("firebase-functions/v2/firestore");
+const { onSchedule } = require("firebase-functions/v2/scheduler");
+const { defineSecret } = require("firebase-functions/params");
+
+const { genkit } = require("genkit");
+const { googleAI } = require("@genkit-ai/google-genai");
 
 admin.initializeApp();
 const db = admin.firestore();
+const geminiApiKey = defineSecret("GEMINI_API_KEY");
 
 function getYesterdayDate(dateString) {
 	const date = new Date(dateString);
@@ -28,23 +34,18 @@ exports.onEntryCreated = onDocumentCreated(
 
 		await db.runTransaction(async (t) => {
 			const userDoc = await t.get(userRef);
-			if (!userDoc.exists) return; // Should not happen
+			if (!userDoc.exists) return;
 
 			const userData = userDoc.data();
 			const lastDate = userData.lastEntryDate;
 
-			// --- 1. IDEMPOTENCY CHECK ---
-			// If the user already has a "lastEntryDate" of today, do NOT increment streak.
-			// This handles the case where a user posts 5 times in one day.
 			if (lastDate === entryDate) {
-				// Just update total entries, but don't touch streak
 				t.update(userRef, {
 					totalEntries: admin.firestore.FieldValue.increment(1),
 				});
 				return;
 			}
 
-			// --- 2. STREAK CALCULATION ---
 			const yesterday = getYesterdayDate(entryDate);
 			let newStreak = 1; // Default reset
 
@@ -70,20 +71,17 @@ exports.onUserSignUp = functions.auth.user().onCreate(async (user) => {
 	let defaultUsername = email
 		? email.split("@")[0]
 		: "User_" + uid.substring(0, 5);
-	const apiKey = "lock_in_" + crypto.randomBytes(16).toString("hex");
 
 	// Default Data
 	const newProfile = {
 		email: email,
 		username: defaultUsername,
 		usernameIsDefault: true,
-		apiKey: apiKey,
 		createdAt: admin.firestore.FieldValue.serverTimestamp(),
-
 		currentStreak: 0,
 		totalEntries: 0,
 		tier: "free",
-		platform: "unknown",
+		platform: "web",
 	};
 
 	try {
@@ -93,3 +91,64 @@ exports.onUserSignUp = functions.auth.user().onCreate(async (user) => {
 		console.error("Error creating user profile:", error);
 	}
 });
+
+exports.generateDailyQuote = onSchedule(
+	{ schedule: "every day 07:00", secrets: [geminiApiKey] },
+	async (event) => {
+		try {
+			// FETCH CONTEXT
+			let quoteContext = "No additional context today. SKIP.";
+			try {
+				// fetch context from external source
+			} catch (e) {
+				console.log("Failed to fetch context");
+			}
+			const recentQuotesSnapshot = await db
+				.collection("quotes")
+				.orderBy("createdAt", "desc")
+				.limit(5)
+				.get();
+
+			const recentQuotes = recentQuotesSnapshot.docs
+				.map((doc) => doc.data().quote)
+				.join(" | ");
+
+			// GENERATE QUOTE
+			const ai = genkit({
+				plugins: [googleAI({ apiKey: geminiApiKey.value() })],
+				model: googleAI.model("gemini-2.0-flash-lite"),
+			});
+
+			const prompt = `
+			You are an inspiring mentor for software developers who are trying to be consistent. Generate ONE short, punch motivational quote for today. Bonus points if you include a twist in it.
+
+			HERE'S SOME CONTEXT FOR YOU TO USE:
+			${quoteContext}
+			
+			RULES:
+			- Keep it under 2 sentences.
+      - Make it relevant to building software, coding, or technology.
+      - DO NOT repeat similar concepts to these recent quotes: [${recentQuotes}]
+      - Do not include quotation marks in the output.
+      - Subtly weave the provided context into the motivation if appropriate, but keep the focus on developer productivity.
+		`;
+
+			const { text } = await ai.generate(prompt);
+
+			// SAVE TO FIRESTORE
+			const today = new Date().toISOString().split("T")[0];
+			const newQuote = {
+				quote: text,
+				createdAt: FieldValue.serverTimestamp(),
+			};
+
+			await db.collection("quotes").doc(today).set(newQuote);
+
+			console.log(`Successfully generated quote for ${today}: ${text}`);
+			return null;
+		} catch (error) {
+			console.error("Error generating daily quote:", error);
+			return null;
+		}
+	},
+);
