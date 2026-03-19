@@ -1,14 +1,17 @@
 const { db, admin } = require("../config/firebase");
 const { generateApiKey } = require("../utils/cryptoUtils");
 
-// This endpoint is protected by Firebase Auth Token, NOT the API Key
 exports.generateKey = async (req, res) => {
-	const userId = req.uid;
-
+	const user = req.user;
+	if (user.authSource !== "web_app") {
+		return res.status(403).json({
+			error: "Forbidden: API keys can only be generated via the web dashboard.",
+		});
+	}
 	try {
 		const newKey = generateApiKey();
 
-		await db.collection("users").doc(userId).set(
+		await user.ref.set(
 			{
 				apiKey: newKey,
 				updatedAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -22,40 +25,31 @@ exports.generateKey = async (req, res) => {
 	}
 };
 
-exports.registerUser = async (req, res) => {
-	const { email, password, username, origin } = req.body;
-
-	if (!email || !password || !username) {
-		return res.status(400).json({ error: "Missing required fields" });
-	}
+exports.updateUserProfile = async (req, res) => {
+	const { username, bio } = req.body;
+	const user = req.user;
 
 	try {
-		const userRecord = await admin.auth().createUser({
-			email: email,
-			password: password,
-			displayName: username,
-		});
-
-		const initialData = {
-			username: username,
-			email: email,
-			createdAt: admin.firestore.FieldValue.serverTimestamp(),
-			platform: origin || "web", // track if they came from 'whatsapp', 'telegram', etc.
-			currentStreak: 0,
-			tier: "free",
+		const updatePayload = {
+			updatedAt: admin.firestore.FieldValue.serverTimestamp(),
 		};
 
-		await db.collection("users").doc(userRecord.uid).set(initialData);
+		if (username) {
+			updatePayload.username = username;
+			updatePayload.usernameIsDefault = false; // Flag that they changed it
+		}
+		if (bio !== undefined) {
+			updatePayload.bio = bio;
+		}
 
-		return res.status(201).json({
-			message: "User created successfully",
-			uid: userRecord.uid,
+		await user.ref.update(updatePayload);
+
+		return res.status(20).json({
+			success: true,
+			message: "Profile updated successfully",
 		});
 	} catch (error) {
-		console.error("Registration Error:", error);
-		if (error.code === "auth/email-already-exists") {
-			return res.status(409).json({ error: "Email already in use" });
-		}
-		return res.status(500).json({ error: "Internal Server Error" });
+		console.error("Profile Update Error:", error);
+		return res.status(500).json({ error: "Failed to update profile." });
 	}
 };

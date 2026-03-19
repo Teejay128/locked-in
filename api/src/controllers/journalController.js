@@ -4,18 +4,20 @@ const AIService = require("../services/aiService");
 
 exports.createEntry = async (req, res) => {
 	const { content, imageUrls = [] } = req.body;
-	const user = req.user;
 
 	if (!content) {
-		return res.status(400).json({ error: "Content required" });
+		return res
+			.status(400)
+			.json({ error: "Content required to create an entry." });
 	}
 
 	try {
+		const user = req.user;
 		const [saveResult, socialPackage] = await Promise.all([
 			user.ref.collection("entries").add({
 				content,
 				imageUrls,
-				source: "api",
+				source: user.authSource,
 				createdAt: admin.firestore.FieldValue.serverTimestamp(),
 			}),
 			AIService.generateSocialPackage(content),
@@ -24,9 +26,11 @@ exports.createEntry = async (req, res) => {
 		// 3. Response
 		res.json({
 			success: true,
-			message: "Entry saved!",
+			message: "Entry saved successfully!",
+			entryId: saveResult.id,
 			images: imageUrls,
 			social: socialPackage,
+			content: content,
 		});
 	} catch (error) {
 		console.error("Controller Error:", error);

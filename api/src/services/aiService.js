@@ -1,17 +1,16 @@
 const { genkit } = require("genkit");
 const { googleAI } = require("@genkit-ai/google-genai");
 
-const apiKey = process.env.GOOGLE_GENAI_API_KEY; // this varible doesn't even exist I guess
-const modelName = process.env.GEMINI_MODEL;
+const apiKey = process.env.GEMINI_API_KEY;
 
-if (!modelName) {
-	console.error("❌ ERROR: GEMINI_MODEL environment variable is not set!");
+if (!apiKey) {
+	console.error("❌ ERROR: GEMINI_API_KEY environment variable is not set!");
 	process.exit(1); // Kill the app immediately with a clear message
 }
 
 const ai = genkit({
 	plugins: [googleAI({ apiKey })],
-	model: googleAI.model(modelName),
+	model: googleAI.model("gemini-2.0-flash-lite"),
 });
 
 async function generateSocialContent(originalText, platform) {
@@ -25,20 +24,18 @@ async function generateSocialContent(originalText, platform) {
 	try {
 		const { text } = await ai.generate(prompt);
 		return text;
-	} catch (e) {
-		console.error(`AI Error (${platform}):`, e);
-		return originalText; // Fallback to original if AI fails
+	} catch (error) {
+		console.error(`AI Error (${platform}):`, error);
+		return originalText;
 	}
 }
 
 exports.generateSocialPackage = async function (content) {
-	// 1. Run AI in parallel
 	const [twitterText, linkedInText] = await Promise.all([
 		generateSocialContent(content, "twitter"),
 		generateSocialContent(content, "linkedin"),
 	]);
 
-	// 2. Format the Links (Logic moved here!)
 	return {
 		twitter: {
 			text: twitterText,

@@ -1,13 +1,13 @@
 const { Router } = require("express");
-const { validateFirebaseToken } = require("../middleware/authMiddleware");
-const authController = require("../controllers/authController");
+const { universalAuth } = require("../middleware/authMiddleware");
+const {
+	generateKey,
+	updateUserProfile,
+} = require("../controllers/authController");
 
 const authRouter = Router();
 
-authRouter.post(
-	"/generate-key",
-	validateFirebaseToken,
-	authController.generateKey,
-);
+authRouter.post("/generate-key", universalAuth, generateKey);
+authRouter.put("/profile", universalAuth, updateUserProfile);
 
 module.exports = authRouter;
