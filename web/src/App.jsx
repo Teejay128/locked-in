@@ -15,8 +15,9 @@ import LandingPage from "./Pages/Landing";
 import QuickTools from "./Pages/QuickTools";
 import SignInPage from "./Pages/SignIn";
 import RegisterPage from "./Pages/Register";
-import Dashboard from "./Pages/Dashboard";
 import Profile from "./Pages/Profile";
+import Dashboard from "./Pages/Dashboard";
+import Journal from "./pages/Journal";
 import NotFoundPage from "./Pages/NotFound";
 
 function App() {
@@ -58,10 +59,7 @@ function App() {
 						element={<Dashboard user={user} />}
 					/>
 					<Route path="profile" element={<Profile />} />
-					<Route
-						path="journal"
-						element={<div>Journal Placeholder</div>}
-					/>
+					<Route path="journal" element={<Journal user={user} />} />
 				</Route>
 
 				<Route path="*" element={<NotFoundPage />} />

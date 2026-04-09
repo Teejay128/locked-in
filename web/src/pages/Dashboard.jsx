@@ -3,11 +3,32 @@ import { Link } from "react-router-dom";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
 
+import EntryComponent from "../components/EntryComponent";
+
+// const testEntryData = {
+// 	success: true,
+// 	message: "Entry saved successfully!",
+// 	entryId: "gg7Zr8Gy9grPh5rmQkwS",
+// 	images: [],
+// 	social: {
+// 		twitter: {
+// 			text: "Weekend app testing: More bugs than expected! Fixing and correcting was a rollercoaster. Who knew testing could be so stressful? 😅 #SoftwareTesting #DevLife #Debugging\n",
+// 			link: "https://x.com/intent/post?text=Weekend%20app%20testing%3A%20More%20bugs%20than%20expected!%20Fixing%20and%20correcting%20was%20a%20rollercoaster.%20Who%20knew%20testing%20could%20be%20so%20stressful%3F%20%F0%9F%98%85%20%23SoftwareTesting%20%23DevLife%20%23Debugging%0A",
+// 		},
+// 		linkedin: {
+// 			text: "Spent the weekend putting the finishing touches on an application I've been developing.\n\nLet's just say the testing phase uncovered a few more issues than I anticipated! So many bugs to squash and corrections to make.\n\nIt's amazing how stressful testing can be, almost as much as the initial development itself. A valuable lesson learned.\n\n#SoftwareDevelopment #Testing #Debugging #QA #ProjectManagement #Tech\n",
+// 			link: "https://www.linkedin.com/feed/?shareActive=true&text=Spent%20the%20weekend%20putting%20the%20finishing%20touches%20on%20an%20application%20I've%20been%20developing.%0A%0ALet's%20just%20say%20the%20testing%20phase%20uncovered%20a%20few%20more%20issues%20than%20I%20anticipated!%20So%20many%20bugs%20to%20squash%20and%20corrections%20to%20make.%0A%0AIt's%20amazing%20how%20stressful%20testing%20can%20be%2C%20almost%20as%20much%20as%20the%20initial%20development%20itself.%20A%20valuable%20lesson%20learned.%0A%0A%23SoftwareDevelopment%20%23Testing%20%23Debugging%20%23QA%20%23ProjectManagement%20%23Tech%0A",
+// 		},
+// 	},
+// 	content:
+// 		"I tested an application I was working on over the weekend, there were so many bugs that I had to fix and correct. Who knew testing could be as stressful as actual development.",
+// 	createdAt: "2026-03-19T05:15:54.949Z",
+// };
+
 const Dashboard = ({ user }) => {
-	const [loading, setLoading] = useState(false);
-	const [error, setError] = useState(null);
-	const [newEntry, setNewEntry] = useState("");
-	const [socialMediaPackage, setSocialMediaPackage] = useState(null);
+	const [entryError, setEntryError] = useState("");
+	const [entryLoading, setEntryLoading] = useState(false);
+	const [entryData, setEntryData] = useState(null);
 
 	const [dailyQuote, setDailyQuote] = useState(
 		"Locking in for today's motivation...",
@@ -21,7 +42,6 @@ const Dashboard = ({ user }) => {
 				const quoteSnap = await getDoc(quoteRef);
 
 				if (quoteSnap.exists()) {
-					console.log("Quote snap exists: ", quoteSnap.data());
 					setDailyQuote(quoteSnap.data().quote);
 				} else {
 					setDailyQuote(
@@ -39,23 +59,22 @@ const Dashboard = ({ user }) => {
 		fetchDailyQuote();
 	}, []);
 
-	const handleNewEntry = async (e) => {
-		e.preventDefault();
-		setLoading(true);
-		setError(null);
-		setSocialMediaPackage(null);
+	const handleNewEntry = async (entryContent) => {
+		setEntryLoading(true);
+		setEntryError(null);
+		setEntryData(null);
 
 		try {
 			const token = await user.getIdToken();
 			const response = await fetch(
-				`${import.meta.env.VITE_API_URL}/journal`,
+				`${import.meta.env.VITE_API_URL}/journal/entry`,
 				{
 					method: "POST",
 					headers: {
 						"Content-Type": "application/json",
 						Authorization: `Bearer ${token}`,
 					},
-					body: JSON.stringify({ content: newEntry }),
+					body: JSON.stringify({ content: entryContent }),
 				},
 			);
 
@@ -64,15 +83,11 @@ const Dashboard = ({ user }) => {
 			}
 
 			const data = await response.json();
-			setSocialMediaPackage({
-				summary: data.summary,
-				fullText: data.content,
-			});
-			setNewEntry("");
+			setEntryData(data);
 		} catch (err) {
-			setError(err.message);
+			setEntryError(err.message);
 		} finally {
-			setLoading(false);
+			setEntryLoading(false);
 		}
 	};
 
@@ -96,7 +111,8 @@ const Dashboard = ({ user }) => {
 					<p className="text-base-content/60 mt-1 text-lg">
 						Welcome back,{" "}
 						<span className="text-primary font-bold">
-							{user.displayName || user.email}
+							Welcome back,{" "}
+							{user.displayName || user.email.split("@")[0]}
 						</span>
 					</p>
 				</div>
@@ -167,58 +183,13 @@ const Dashboard = ({ user }) => {
 			{/* ==============================
           3. NEW ENTRY AREA (The "Action" Center)
       ============================== */}
-			<section className="card bg-base-100 shadow-xl border border-primary/20">
-				<div className="card-body">
-					<h2 className="card-title mb-2">
-						<span className="text-2xl">✍️</span> New Journal Entry
-					</h2>
-
-					<form onSubmit={handleNewEntry}>
-						<textarea
-							className="textarea textarea-bordered textarea-lg w-full h-40 focus:outline-none focus:border-primary resize-none leading-relaxed"
-							value={newEntry}
-							onChange={(e) => setNewEntry(e.target.value)}
-							placeholder="What did you build, learn, or fix today?"
-							required
-						/>
-
-						<div className="card-actions justify-between items-center mt-4">
-							{error && (
-								<span className="text-error text-sm font-bold">
-									{error}
-								</span>
-							)}
-							{!error && <div></div>} {/* Spacer */}
-							<button
-								type="submit"
-								className={`btn btn-primary px-8 ${loading ? "loading" : ""}`}
-								disabled={loading}
-							>
-								{loading ? "Saving..." : "Create Entry"}
-							</button>
-						</div>
-					</form>
-
-					{/* Social Media Preview (Conditional) */}
-					{socialMediaPackage && (
-						<div className="mt-6 animate-fade-in-up">
-							<div className="alert bg-base-200 shadow-sm border-l-4 border-secondary">
-								<div>
-									<h3 className="font-bold text-secondary">
-										✨ AI Generated Preview
-									</h3>
-									<div className="text-xs text-base-content/60 mb-2">
-										Based on your entry
-									</div>
-									<p className="italic text-base-content/80">
-										"{socialMediaPackage.summary}"
-									</p>
-								</div>
-							</div>
-						</div>
-					)}
-				</div>
-			</section>
+			<EntryComponent
+				entry={entryData}
+				isError={!!entryError}
+				errorMessage={entryError}
+				isLoading={entryLoading}
+				onSubmit={handleNewEntry}
+			/>
 
 			{/* ==============================
           4. LIFETIME STATS (Secondary Info)

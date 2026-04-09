@@ -1,5 +1,4 @@
 const { admin } = require("../config/firebase");
-const UserModel = require("../models/userModel");
 const AIService = require("../services/aiService");
 
 exports.createEntry = async (req, res) => {
@@ -12,16 +11,17 @@ exports.createEntry = async (req, res) => {
 	}
 
 	try {
+		const requestTime = new Date();
 		const user = req.user;
-		const [saveResult, socialPackage] = await Promise.all([
-			user.ref.collection("entries").add({
-				content,
-				imageUrls,
-				source: user.authSource,
-				createdAt: admin.firestore.FieldValue.serverTimestamp(),
-			}),
-			AIService.generateSocialPackage(content),
-		]);
+
+		const socialPackage = await AIService.generateSocialPackage(content);
+		const saveResult = await user.ref.collection("entries").add({
+			content,
+			imageUrls,
+			source: user.authSource || "web_app",
+			social: socialPackage,
+			createdAt: admin.firestore.FieldValue.serverTimestamp(),
+		});
 
 		// 3. Response
 		res.json({
@@ -31,6 +31,7 @@ exports.createEntry = async (req, res) => {
 			images: imageUrls,
 			social: socialPackage,
 			content: content,
+			createdAt: requestTime.toISOString(),
 		});
 	} catch (error) {
 		console.error("Controller Error:", error);

@@ -93,7 +93,7 @@ exports.onUserSignUp = functions.auth.user().onCreate(async (user) => {
 });
 
 exports.generateDailyQuote = onSchedule(
-	{ schedule: "every day 07:00", secrets: [geminiApiKey] },
+	{ schedule: "every day 00:00", secrets: [geminiApiKey] },
 	async (event) => {
 		try {
 			// FETCH CONTEXT
