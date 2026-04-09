@@ -13,12 +13,12 @@
 	"license": "ISC",
 	"type": "commonjs",
 	"dependencies": {
-		"@genkit-ai/google-genai": "^1.27.0",
+		"@genkit-ai/google-genai": "^1.16.1",
 		"@google-cloud/vertexai": "^1.10.0",
 		"cors": "^2.8.5",
 		"dotenv": "^17.2.3",
 		"express": "^5.2.1",
-		"firebase-admin": "^13.6.0",
-		"genkit": "^1.27.0"
+		"firebase-admin": "^10.3.0",
+		"genkit": "^1.16.1"
 	}
 }

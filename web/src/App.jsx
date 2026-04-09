@@ -11,14 +11,14 @@ import "./App.css";
 import OpenLayout from "./layouts/OpenLayout";
 import ProtectedLayout from "./layouts/ProtectedLayout";
 
-import LandingPage from "./Pages/Landing";
-import QuickTools from "./Pages/QuickTools";
-import SignInPage from "./Pages/SignIn";
-import RegisterPage from "./Pages/Register";
-import Profile from "./Pages/Profile";
-import Dashboard from "./Pages/Dashboard";
+import LandingPage from "./pages/Landing";
+import QuickTools from "./pages/QuickTools";
+import SignInPage from "./pages/SignIn";
+import RegisterPage from "./pages/Register";
+import Profile from "./pages/Profile";
+import Dashboard from "./pages/Dashboard";
 import Journal from "./pages/Journal";
-import NotFoundPage from "./Pages/NotFound";
+import NotFoundPage from "./pages/NotFound";
 
 function App() {
 	const [user, setUser] = useState(null);
