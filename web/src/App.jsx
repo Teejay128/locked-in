@@ -13,8 +13,7 @@ import ProtectedLayout from "./layouts/ProtectedLayout";
 
 import LandingPage from "./pages/Landing";
 import QuickTools from "./pages/QuickTools";
-import SignInPage from "./pages/SignIn";
-import RegisterPage from "./pages/Register";
+import LockInPage from "./pages/LockIn";
 import Profile from "./pages/Profile";
 import Dashboard from "./pages/Dashboard";
 import Journal from "./pages/Journal";
@@ -50,8 +49,11 @@ function App() {
 					<Route path="/quick-tools" element={<QuickTools />} />
 				</Route>
 
-				<Route path="/login" element={<SignInPage />} />
-				<Route path="/register" element={<RegisterPage />} />
+				<Route path="/login" element={<LockInPage />} />
+				<Route
+					path="/register"
+					element={<LockInPage defaultIsRegister={true} />}
+				/>
 
 				<Route path="/app" element={<ProtectedLayout user={user} />}>
 					<Route

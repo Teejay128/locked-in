@@ -1,69 +1,59 @@
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 const NotFoundPage = () => {
-	const navigate = useNavigate();
-
 	return (
-		<div className="hero min-h-screen bg-base-200">
-			<div className="hero-content text-center">
-				<div className="max-w-lg">
-					{/* TODO: Replace this placeholder URL with your actual cartoon jail image.
-            I've set a max-height to keep it proportional.
-          */}
-					<div className="mb-8 flex justify-center">
-						<img
-							src="https://cdn-icons-png.flaticon.com/512/755/755014.png"
-							alt="Cartoon character in jail"
-							className="h-64 w-auto opacity-80 hover:opacity-100 transition-opacity drop-shadow-xl"
-						/>
-					</div>
-
-					<h1 className="text-5xl font-black text-base-content mb-4">
-						You have been{" "}
-						<span className="text-error italic font-serif">
-							locked out
-						</span>{" "}
-						in cell 404.
-					</h1>
-
-					<p className="py-6 text-xl text-base-content/70">
-						We couldn't find the page you were looking for. Looks
-						like you took a wrong turn and ended up in solitary
-						confinement.
-					</p>
-
-					<div className="flex flex-col sm:flex-row gap-4 justify-center mt-4">
-						{/* Primary Action: Go Home */}
-						<Link to="/" className="btn btn-primary btn-lg">
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								className="h-5 w-5 mr-2"
-								fill="none"
-								viewBox="0 0 24 24"
-								stroke="currentColor"
-							>
-								<path
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									strokeWidth="2"
-									d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-								/>
-							</svg>
-							Return to Safety
-						</Link>
-
-						{/* Secondary Action: Go Back History */}
-						<button
-							onClick={() => navigate(-1)}
-							className="btn btn-outline btn-ghost btn-lg"
+		<main className="h-screen w-screen flex items-center justify-center p-4 bg-surface relative overflow-hidden text-on-surface font-body z-0">
+			{/* Abstract Background Elements */}
+			<div className="absolute top-10 right-10 w-64 h-64 bg-surface-container-low border-2 border-primary rounded-lg -rotate-6 z-0 hidden lg:block"></div>
+			<div className="absolute bottom-10 left-10 w-48 h-48 bg-secondary-container border-2 border-primary rounded-full rotate-12 z-0 hidden lg:block"></div>
+			
+			{/* Error Container Card */}
+			<div className="relative z-10 w-full max-w-lg bg-surface-container-lowest border-4 border-primary rounded-xl neo-shadow p-6 md:p-10 flex flex-col items-center text-center overflow-y-auto max-h-[90vh]">
+				{/* Broken Padlock Illustration */}
+				<div className="mb-6 relative">
+					<div className="bg-surface p-5 md:p-6 rounded-2xl border-4 border-primary rotate-3">
+						<span
+							className="material-symbols-outlined text-[80px] md:text-[100px] text-primary"
+							style={{ fontVariationSettings: '"FILL" 1' }}
 						>
-							Go Back
-						</button>
+							lock_open
+						</span>
+						{/* Decorative "Break" lines */}
+						<div className="absolute -top-3 -right-3 w-10 h-10 bg-error border-4 border-primary rounded-full flex items-center justify-center text-white font-bold text-lg rotate-12 neo-shadow-sm">
+							!
+						</div>
 					</div>
 				</div>
+				
+				{/* Massive Editorial Headline */}
+				<h1 className="text-4xl md:text-5xl font-headline font-black tracking-tighter text-primary uppercase mb-4 leading-none">
+					404 - <span className="text-tertiary-fixed italic">YOU'RE</span><br className="md:hidden" /> LOCKED OUT!
+				</h1>
+				
+				{/* Subtext with Technical Voice */}
+				<p className="font-label text-lg md:text-xl text-secondary max-w-md mb-8 tracking-tight leading-relaxed">
+					It looks like you've wandered off the track. Don't break
+					your streak now.
+				</p>
+				
+				{/* Primary Action Button */}
+				<Link
+					className="group relative inline-flex items-center gap-3 bg-primary text-on-primary-container font-headline font-extrabold text-xl px-8 py-4 rounded-lg border-4 border-primary neo-shadow active-press transition-transform"
+					to="/"
+				>
+					LOCK BACK IN
+					<span className="material-symbols-outlined transition-transform group-hover:translate-x-1">
+						arrow_forward
+					</span>
+				</Link>
+				
+				{/* Technical Detail Meta-tag */}
+				<div className="mt-8 py-1.5 px-3 bg-surface-container-low border-2 border-primary font-label text-xs md:text-sm uppercase tracking-widest text-primary">
+					Error Code: 0x404_NULL_REF
+				</div>
 			</div>
-		</div>
+		</main>
 	);
 };
 
