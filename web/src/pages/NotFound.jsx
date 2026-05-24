@@ -1,7 +1,17 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { auth } from "../firebase";
 
 const NotFoundPage = () => {
+	const [user, setUser] = useState(auth.currentUser);
+
+	useEffect(() => {
+		const unsubscribe = auth.onAuthStateChanged((u) => {
+			setUser(u);
+		});
+		return () => unsubscribe();
+	}, []);
+
 	return (
 		<main className="h-screen w-screen flex items-center justify-center p-4 bg-surface relative overflow-hidden text-on-surface font-body z-0">
 			{/* Abstract Background Elements */}
@@ -40,7 +50,7 @@ const NotFoundPage = () => {
 				{/* Primary Action Button */}
 				<Link
 					className="group relative inline-flex items-center gap-3 bg-primary text-on-primary-container font-headline font-extrabold text-xl px-8 py-4 rounded-lg border-4 border-primary neo-shadow active-press transition-transform"
-					to="/"
+					to={user ? "/app/dashboard" : "/"}
 				>
 					LOCK BACK IN
 					<span className="material-symbols-outlined transition-transform group-hover:translate-x-1">

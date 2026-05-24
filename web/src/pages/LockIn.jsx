@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { auth } from "../firebase";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { auth, googleProvider } from "../firebase";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signInWithPopup } from "firebase/auth";
 
 const LockIn = ({ defaultIsRegister = false }) => {
 	const [isRegister, setIsRegister] = useState(defaultIsRegister);
@@ -33,6 +33,23 @@ const LockIn = ({ defaultIsRegister = false }) => {
 				await signInWithEmailAndPassword(auth, email, password);
 				navigate("/app/dashboard");
 			}
+		} catch (err) {
+			console.log(err);
+			const message = err.message
+				.replace("Firebase: ", "")
+				.replace("auth/", "");
+			setError(message);
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	const handleGoogleLogin = async () => {
+		setError(null);
+		setLoading(true);
+		try {
+			await signInWithPopup(auth, googleProvider);
+			navigate("/app/dashboard");
 		} catch (err) {
 			console.log(err);
 			const message = err.message
@@ -159,6 +176,8 @@ const LockIn = ({ defaultIsRegister = false }) => {
 						<button
 							className="w-full py-2 md:py-3 bg-surface-container-lowest text-primary font-label font-bold text-sm md:text-base uppercase flex items-center justify-center gap-3 border-4 border-primary rounded-lg neo-shadow-sm active-press transition-transform"
 							type="button"
+							onClick={handleGoogleLogin}
+							disabled={loading}
 						>
 							<svg
 								xmlns="http://www.w3.org/2000/svg"

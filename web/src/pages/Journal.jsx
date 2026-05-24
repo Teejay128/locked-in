@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { collection, query, orderBy, getDocs } from "firebase/firestore";
 import { db, auth } from "../firebase";
 import EntryComponent from "../components/EntryComponent";
+import Card from "../components/stitch/Card";
+import PopButton from "../components/stitch/PopButton";
 
 const Journal = ({ user }) => {
 	const [entries, setEntries] = useState([]);
@@ -124,30 +126,18 @@ const Journal = ({ user }) => {
           HEADER & AI SUGGESTION
       ============================== */}
 			<div className="flex flex-col gap-2">
-				<h1 className="text-3xl font-bold">
+				<h1 className="text-3xl font-black italic tracking-tighter uppercase font-headline text-primary">
 					Welcome back, {user.displayName || user.email.split("@")[0]}
 				</h1>
-				<div className="alert bg-primary/10 border border-primary/20 text-base-content shadow-sm mt-2">
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						fill="none"
-						viewBox="0 0 24 24"
-						className="stroke-primary shrink-0 w-6 h-6"
-					>
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							strokeWidth="2"
-							d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-						></path>
-					</svg>
+				<Card variant="low" padding="small" shadow="none" className="mt-4 flex items-start gap-4">
+					<span className="text-2xl mt-1">🧠</span>
 					<div>
-						<h3 className="font-bold text-sm text-primary">
+						<h3 className="font-headline font-black text-sm text-primary uppercase">
 							AI Insights
 						</h3>
-						<div className="text-sm opacity-80">{aiSuggestion}</div>
+						<div className="font-body text-base mt-1 text-base-content">{aiSuggestion}</div>
 					</div>
-				</div>
+				</Card>
 			</div>
 
 			{/* ==============================
@@ -155,16 +145,16 @@ const Journal = ({ user }) => {
       ============================== */}
 			<div className="space-y-4">
 				{/* --- SLOT 1: NEW ENTRY --- */}
-				<div className="border border-base-300 bg-base-100 rounded-xl overflow-hidden shadow-sm transition-all duration-300">
+				<Card padding="none" className="overflow-hidden bg-surface-container-lowest">
 					<button
-						className={`w-full text-left px-6 py-4 flex justify-between items-center hover:bg-base-200 transition-colors ${expandedId === "new" ? "bg-base-200" : ""}`}
+						className={`w-full text-left px-6 py-4 flex justify-between items-center hover:bg-surface-container-low transition-colors font-headline font-extrabold uppercase text-sm ${expandedId === "new" ? "bg-surface-container-low" : ""}`}
 						onClick={() => toggleAccordion("new")}
 					>
-						<span className="font-bold flex items-center gap-2">
+						<span className="flex items-center gap-2">
 							<span>✍️</span> Log a New Update
 						</span>
 						<span
-							className="text-xl opacity-50 transition-transform duration-300"
+							className="text-sm opacity-50 transition-transform duration-300"
 							style={{
 								transform:
 									expandedId === "new"
@@ -190,23 +180,24 @@ const Journal = ({ user }) => {
 							{/* Reset button to write another entry without refreshing */}
 							{newEntryData && (
 								<div className="flex justify-end mt-[-1rem] mb-2 pr-2">
-									<button
-										className="btn btn-sm btn-ghost text-primary"
+									<PopButton
+										variant="default"
+										className="py-1.5 px-3 text-xs"
 										onClick={() => {
 											setNewEntryData(null);
 											setExpandedId("new");
 										}}
 									>
 										+ Start Another Entry
-									</button>
+									</PopButton>
 								</div>
 							)}
 						</div>
 					</div>
-				</div>
+				</Card>
 
 				{/* --- HISTORY SLOTS --- */}
-				<div className="divider opacity-50 text-sm">
+				<div className="divider opacity-50 text-sm font-label font-bold uppercase tracking-wider">
 					Previous Entries
 				</div>
 
@@ -229,22 +220,23 @@ const Journal = ({ user }) => {
 				)}
 
 				{entries.length === 0 && (
-					<div className="text-center opacity-50 italic py-8">
+					<div className="text-center opacity-50 italic py-8 font-body">
 						No entries yet. Start building your history above!
 					</div>
 				)}
 
 				{entries.map((entry) => (
-					<div
+					<Card
 						key={entry.entryId}
-						className="border border-base-300 bg-base-100 rounded-xl overflow-hidden shadow-sm transition-all duration-300"
+						padding="none"
+						className="overflow-hidden bg-surface-container-lowest"
 					>
 						<button
-							className={`w-full text-left px-6 py-4 flex justify-between items-center hover:bg-base-200 transition-colors ${expandedId === entry.entryId ? "bg-base-200" : ""}`}
+							className={`w-full text-left px-6 py-4 flex justify-between items-center hover:bg-surface-container-low transition-colors font-headline font-extrabold uppercase text-sm ${expandedId === entry.entryId ? "bg-surface-container-low" : ""}`}
 							onClick={() => toggleAccordion(entry.entryId)}
 						>
 							<div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 truncate pr-4">
-								<span className="font-semibold whitespace-nowrap">
+								<span className="whitespace-nowrap font-label font-bold text-primary">
 									{new Date(
 										entry.createdAt,
 									).toLocaleDateString(undefined, {
@@ -253,12 +245,12 @@ const Journal = ({ user }) => {
 										year: "numeric",
 									})}
 								</span>
-								<span className="text-sm opacity-60 truncate max-w-[200px] sm:max-w-md">
-									{entry.content.slice(0, 50)}...
+								<span className="text-xs opacity-60 truncate max-w-[200px] sm:max-w-md font-body lowercase">
+									- {entry.content.slice(0, 50)}...
 								</span>
 							</div>
 							<span
-								className="text-xl opacity-50 transition-transform duration-300 shrink-0"
+								className="text-sm opacity-50 transition-transform duration-300 shrink-0"
 								style={{
 									transform:
 										expandedId === entry.entryId
@@ -277,7 +269,7 @@ const Journal = ({ user }) => {
 								<EntryComponent entry={entry} />
 							</div>
 						</div>
-					</div>
+					</Card>
 				))}
 			</div>
 		</div>

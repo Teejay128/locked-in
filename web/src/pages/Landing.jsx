@@ -99,7 +99,7 @@ const LandingPage = () => {
 						</div>
 
 						<Link
-							to="/quick-tools"
+							to="/tools"
 							className="inline-block bg-surface-container-lowest text-primary text-xl px-8 py-4 border-4 border-primary neo-shadow font-black active-press uppercase font-headline rounded-xl"
 						>
 							Try It Out Now

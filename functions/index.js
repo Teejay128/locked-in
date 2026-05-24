@@ -20,6 +20,31 @@ function getYesterdayDate(dateString) {
 	return date.toISOString().split("T")[0];
 }
 
+async function sendDiscordMessage(text) {
+	const webhookUrl = "https://discordapp.com/api/webhooks/1492646543533146327/tHp7C0RAmDDpfWe_0hyy7NrkzKUUQCkpvXOY1R6JQH4K_iRH_7xUWlpvCicgmsK9yj6N"
+
+	if(!webhookUrl) {
+		console.error("Missing Discord Webhook URL")
+		return
+	}
+
+	try {
+		const response = await fetch(webhookUrl, {
+			method: "POST",
+			headers: { "Content-Type": "application/json"},
+			body: JSON.stringify({
+				content: text,
+			})
+		})
+
+		if(!response.ok) {
+			console.error("Failed to send message to Discord")
+		}
+	} catch (error) {
+		console.error("Error sending message to Discord:", error)
+	}
+}
+
 exports.onEntryCreated = onDocumentCreated(
 	"users/{userId}/entries/{entryId}",
 	async (event) => {
@@ -93,7 +118,7 @@ exports.onUserSignUp = functions.auth.user().onCreate(async (user) => {
 });
 
 exports.generateDailyQuote = onSchedule(
-	{ schedule: "every day 00:00", secrets: [geminiApiKey] },
+	{ schedule: "every day 07:00", secrets: [geminiApiKey] },
 	async (event) => {
 		try {
 			// FETCH CONTEXT
@@ -141,9 +166,11 @@ exports.generateDailyQuote = onSchedule(
 				quote: text,
 				createdAt: FieldValue.serverTimestamp(),
 			};
-
+			
 			await db.collection("quotes").doc(today).set(newQuote);
-
+			
+			// Send to discord
+			await sendDiscordMessage(text)
 			console.log(`Successfully generated quote for ${today}: ${text}`);
 			return null;
 		} catch (error) {

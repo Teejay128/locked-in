@@ -44,7 +44,7 @@ exports.updateUserProfile = async (req, res) => {
 
 		await user.ref.update(updatePayload);
 
-		return res.status(20).json({
+		return res.status(200).json({
 			success: true,
 			message: "Profile updated successfully",
 		});

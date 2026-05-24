@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import Card from "../components/stitch/Card";
+import PopButton from "../components/stitch/PopButton";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -71,13 +73,13 @@ function QuickTools() {
 					{/* LEFT COLUMN: Input & Description */}
 					<div className="space-y-6">
 						<div>
-							<div className="badge badge-secondary badge-outline mb-2">
+							<div className="badge badge-secondary border-secondary text-secondary font-label font-bold text-xs uppercase px-2 py-1 rounded mb-2 inline-block">
 								Content Creation
 							</div>
-							<h2 className="text-3xl font-bold mb-3">
+							<h2 className="text-3xl font-headline font-black uppercase text-primary mb-3">
 								Social Post Generator
 							</h2>
-							<p className="text-base-content/70 text-lg leading-relaxed">
+							<p className="text-base-content/70 text-lg leading-relaxed font-body">
 								Don't let your coding sessions go unnoticed.
 								Paste your rough notes, commit messages, or
 								thoughts here, and we'll craft the perfect{" "}
@@ -86,16 +88,13 @@ function QuickTools() {
 							</p>
 						</div>
 
-						<form
-							onSubmit={handleSocialSubmit}
-							className="card bg-base-100 shadow-xl border border-base-300"
-						>
-							<div className="card-body p-6">
-								<label className="label font-bold text-sm uppercase text-base-content/50">
+						<form onSubmit={handleSocialSubmit}>
+							<Card className="bg-surface-container-lowest">
+								<label className="label font-label font-bold text-xs uppercase tracking-wider text-base-content/50 mb-2 block">
 									Your Rough Notes
 								</label>
 								<textarea
-									className="textarea textarea-bordered w-full h-48 text-lg focus:border-primary focus:outline-none transition-all resize-none"
+									className="textarea textarea-bordered w-full h-48 text-lg border-2 border-primary rounded-lg p-3 font-body focus:outline-none transition-all resize-none bg-surface-container-low/30 focus:bg-surface-container-lowest"
 									placeholder="e.g., Struggled with React Context today but finally fixed the re-rendering issue..."
 									value={socialInput}
 									onChange={(e) =>
@@ -105,30 +104,27 @@ function QuickTools() {
 								></textarea>
 
 								{socialError && (
-									<p className="text-error text-sm mt-2">
+									<p className="text-error text-sm mt-2 font-label font-bold">
 										{socialError}
 									</p>
 								)}
 
-								<div className="card-actions justify-between items-center mt-0">
+								<div className="flex justify-between items-center mt-4">
 									<span
-										className={`text-xs ${socialInput.length > 450 ? "text-error" : "text-base-content/40"}`}
+										className={`text-xs font-label font-bold ${socialInput.length > 450 ? "text-error" : "text-base-content/40"}`}
 									>
 										{socialInput.length}/500 chars
 									</span>
-									<button
+									<PopButton
 										type="submit"
-										className={`btn btn-primary px-8 ${socialLoading ? "loading" : ""}`}
-										disabled={
-											socialLoading || !socialInput.trim()
-										}
+										variant="primary"
+										className="py-2 px-6"
+										disabled={socialLoading || !socialInput.trim()}
 									>
-										{socialLoading
-											? "Generating..."
-											: "Generate Posts"}
-									</button>
+										{socialLoading ? "Generating..." : "Generate Posts"}
+									</PopButton>
 								</div>
-							</div>
+							</Card>
 						</form>
 					</div>
 
@@ -136,7 +132,7 @@ function QuickTools() {
 					<div className="relative w-full">
 						{/* STATE A: INFOGRAPHIC (Show when no result yet) */}
 						{!socialResult && !socialLoading && (
-							<div className="bg-base-100 rounded-2xl border-2 border-dashed border-base-300 p-8 h-full flex flex-col items-center justify-center text-center opacity-70 min-h-100">
+							<Card shadow="none" className="border-dashed bg-surface-container-lowest p-8 h-full flex flex-col items-center justify-center text-center opacity-70 min-h-[300px]">
 								{/* Simple CSS Graphic Placeholder */}
 								<div className="flex items-center gap-4 mb-6">
 									<div className="w-16 h-20 bg-base-300 rounded-lg animate-pulse"></div>
@@ -155,17 +151,17 @@ function QuickTools() {
 									</svg>
 									<div className="w-16 h-20 bg-primary/20 rounded-lg"></div>
 								</div>
-								<h3 className="font-bold text-lg text-base-content/60">
+								<h3 className="font-headline font-black text-lg text-primary uppercase">
 									How it works
 								</h3>
-								<p className="text-sm text-base-content/50 max-w-xs mt-2">
+								<p className="text-sm font-body text-base-content/50 max-w-xs mt-2">
 									1. Paste your "brain dump"
 									<br />
 									2. AI structures the narrative
 									<br />
 									3. Get formatted posts instantly
 								</p>
-							</div>
+							</Card>
 						)}
 
 						{/* STATE B: LOADING SKELETON */}
@@ -180,72 +176,68 @@ function QuickTools() {
 						{socialResult && (
 							<div className="space-y-6 animate-fade-in-up">
 								{/* Twitter Result */}
-								<div className="card bg-white shadow-lg border-l-4 border-[#1DA1F2] text-gray-800">
-									<div className="card-body p-5">
-										<h3 className="font-bold text-[#1DA1F2] flex items-center gap-2 text-sm uppercase tracking-wide">
-											<svg
-												className="w-4 h-4"
-												fill="currentColor"
-												viewBox="0 0 24 24"
-											>
-												<path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" />
-											</svg>
-											Twitter
-										</h3>
-										<p className="text-sm whitespace-pre-wrap">
-											{socialResult.twitter.text}
-										</p>
-										<div className="card-actions justify-end mt-2">
-											<a
-												href={socialResult.twitter.link}
-												target="_blank"
-												rel="noreferrer"
-												className="btn btn-xs btn-outline"
-											>
+								<Card className="bg-white border-l-4 border-[#1DA1F2] text-gray-800" shadow="large">
+									<h3 className="font-headline font-black text-[#1DA1F2] flex items-center gap-2 text-sm uppercase tracking-wide border-b border-[#1DA1F2]/20 pb-2">
+										<svg
+											className="w-4 h-4"
+											fill="currentColor"
+											viewBox="0 0 24 24"
+										>
+											<path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" />
+										</svg>
+										Twitter
+									</h3>
+									<p className="text-sm font-body whitespace-pre-wrap mt-3">
+										{socialResult.twitter.text}
+									</p>
+									<div className="flex justify-end mt-4">
+										<a
+											href={socialResult.twitter.link}
+											target="_blank"
+											rel="noreferrer"
+										>
+											<PopButton className="py-1.5 px-4 text-xs">
 												Tweet This
-											</a>
-										</div>
+											</PopButton>
+										</a>
 									</div>
-								</div>
+								</Card>
 
 								{/* LinkedIn Result */}
-								<div className="card bg-white shadow-lg border-l-4 border-[#0A66C2] text-gray-800">
-									<div className="card-body p-5">
-										<h3 className="font-bold text-[#0A66C2] flex items-center gap-2 text-sm uppercase tracking-wide">
-											<svg
-												className="w-4 h-4"
-												fill="currentColor"
-												viewBox="0 0 24 24"
-											>
-												<path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
-											</svg>
-											LinkedIn
-										</h3>
-										<p className="text-sm whitespace-pre-wrap">
-											{socialResult.linkedin.text}
-										</p>
-										<div className="card-actions justify-end mt-2">
-											<a
-												href={
-													socialResult.linkedin.link
-												}
-												target="_blank"
-												rel="noreferrer"
-												className="btn btn-xs btn-outline"
-											>
+								<Card className="bg-white border-l-4 border-[#0A66C2] text-gray-800" shadow="large">
+									<h3 className="font-headline font-black text-[#0A66C2] flex items-center gap-2 text-sm uppercase tracking-wide border-b border-[#0A66C2]/20 pb-2">
+										<svg
+											className="w-4 h-4"
+											fill="currentColor"
+											viewBox="0 0 24 24"
+										>
+											<path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
+										</svg>
+										LinkedIn
+									</h3>
+									<p className="text-sm font-body whitespace-pre-wrap mt-3">
+										{socialResult.linkedin.text}
+									</p>
+									<div className="flex justify-end mt-4">
+										<a
+											href={socialResult.linkedin.link}
+											target="_blank"
+											rel="noreferrer"
+										>
+											<PopButton variant="primary" className="py-1.5 px-4 text-xs">
 												Post This
-											</a>
-										</div>
+											</PopButton>
+										</a>
 									</div>
-								</div>
+								</Card>
 
 								<div className="text-center">
-									<button
+									<PopButton
 										onClick={() => setSocialResult(null)}
-										className="btn btn-ghost btn-sm text-xs"
+										className="py-1.5 px-4 text-xs bg-transparent border-transparent hover:bg-surface-container-low shadow-none hover:shadow-none hover:translate-x-0 hover:translate-y-0 active:translate-x-0 active:translate-y-0"
 									>
 										Clear & Start Over
-									</button>
+									</PopButton>
 								</div>
 							</div>
 						)}
@@ -258,35 +250,34 @@ function QuickTools() {
         ============================== */}
 				<section className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center opacity-50 grayscale hover:grayscale-0 transition-all duration-500 cursor-not-allowed">
 					<div className="space-y-6">
-						<div className="badge badge-ghost badge-outline mb-2">
+						<div className="badge badge-ghost border-primary text-primary font-label font-bold text-xs uppercase px-2 py-1 rounded mb-2 inline-block">
 							Coming Soon
 						</div>
-						<h2 className="text-3xl font-bold mb-3">
+						<h2 className="text-3xl font-headline font-black uppercase text-primary mb-3">
 							Commit Message Beautifier
 						</h2>
-						<p className="text-base-content/70 text-lg">
+						<p className="text-base-content/70 text-lg font-body">
 							Turn "fixed stuff" into professional, semantic
 							commit messages instantly.
 						</p>
-						<div className="h-12 w-48 bg-base-300 rounded-btn"></div>
 					</div>
-					<div className="h-64 bg-base-300 rounded-2xl border-2 border-dashed border-base-300 flex items-center justify-center">
-						<span className="font-bold text-2xl text-base-content/20">
+					<Card shadow="none" className="h-64 border-dashed bg-surface-container-low flex items-center justify-center">
+						<span className="font-headline font-black text-2xl text-primary/20 uppercase">
 							Coming Soon
 						</span>
-					</div>
+					</Card>
 				</section>
 			</div>
 
 			{/* ==============================
           3. UPSELL / PROMOTIONAL FOOTER
       ============================== */}
-			<div className="bg-neutral text-neutral-content py-16 mt-12">
+			<div className="bg-neutral text-neutral-content py-16 mt-12 border-t-4 border-primary">
 				<div className="max-w-4xl mx-auto px-6 text-center">
-					<h2 className="text-3xl font-bold mb-6 text-primary">
+					<h2 className="text-3xl font-headline font-black uppercase mb-6 text-white tracking-tighter">
 						Need to save your history?
 					</h2>
-					<p className="text-lg text-gray-300 mb-8 max-w-2xl mx-auto">
+					<p className="text-lg font-body text-gray-300 mb-8 max-w-2xl mx-auto">
 						These tools are free forever, but your data disappears
 						when you refresh. Create a free account to{" "}
 						<strong>save your generated posts</strong>,{" "}
@@ -294,18 +285,16 @@ function QuickTools() {
 						the full developer journal.
 					</p>
 
-					<div className="flex flex-col sm:flex-row gap-4 justify-center">
-						<Link
-							to="/register"
-							className="btn btn-primary btn-lg border-none"
-						>
-							Create Free Account
+					<div className="flex flex-col sm:flex-row gap-6 justify-center">
+						<Link to="/register">
+							<PopButton variant="primary" className="py-4 px-8 text-lg w-full sm:w-auto">
+								Create Free Account
+							</PopButton>
 						</Link>
-						<Link
-							to="/login"
-							className="btn btn-outline btn-accent btn-lg"
-						>
-							Sign In
+						<Link to="/login">
+							<PopButton className="py-4 px-8 text-lg w-full sm:w-auto">
+								Sign In
+							</PopButton>
 						</Link>
 					</div>
 

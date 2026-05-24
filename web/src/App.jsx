@@ -18,6 +18,7 @@ import Profile from "./pages/Profile";
 import Dashboard from "./pages/Dashboard";
 import Journal from "./pages/Journal";
 import NotFoundPage from "./pages/NotFound";
+import AboutPage from "./pages/About";
 
 function App() {
 	const [user, setUser] = useState(null);
@@ -46,7 +47,8 @@ function App() {
 			<Routes>
 				<Route element={<OpenLayout />}>
 					<Route path="/" element={<LandingPage />} />
-					<Route path="/quick-tools" element={<QuickTools />} />
+					<Route path="/tools" element={<QuickTools />} />
+					<Route path="/about" element={<AboutPage />} />
 				</Route>
 
 				<Route path="/login" element={<LockInPage />} />
@@ -62,6 +64,7 @@ function App() {
 					/>
 					<Route path="profile" element={<Profile />} />
 					<Route path="journal" element={<Journal user={user} />} />
+					<Route path="tools" element={<QuickTools />} />
 				</Route>
 
 				<Route path="*" element={<NotFoundPage />} />

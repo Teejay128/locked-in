@@ -1,10 +1,10 @@
 const { genkit } = require("genkit");
 const { googleAI } = require("@genkit-ai/google-genai");
 
-const apiKey = process.env.GEMINI_API_KEY;
+const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENAI_API_KEY;
 
 if (!apiKey) {
-	console.error("❌ ERROR: GEMINI_API_KEY environment variable is not set!");
+	console.error("❌ ERROR: Neither GEMINI_API_KEY nor GOOGLE_GENAI_API_KEY environment variables are set!");
 	process.exit(1); // Kill the app immediately with a clear message
 }
 

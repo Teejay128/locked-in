@@ -30,10 +30,10 @@ const ProtectedLayout = ({ user }) => {
 		: user.email.charAt(0).toUpperCase();
 
 	const navLinks = [
-		{ path: "/app/dashboard", icon: "grid_view", label: "Overview" },
+		{ path: "/app/dashboard", icon: "grid_view", label: "Dashboard" },
 		{ path: "/app/profile", icon: "person", label: "Profile" },
 		{ path: "/app/journal", icon: "edit_document", label: "Journal" },
-		{ path: "/app/tools", icon: "extension", label: "Quick Tools" },
+		{ path: "/app/tools", icon: "extension", label: "Tools" },
 	];
 
 	return (
@@ -57,14 +57,14 @@ const ProtectedLayout = ({ user }) => {
             ============================== */}
 			{/* 4. The "Muscle": Fixed on mobile (slides in/out), static flex-item on desktop (always visible) */}
 			<aside
-				className={`fixed inset-y-0 left-0 z-50 w-72 bg-surface text-primary font-headline font-extrabold text-lg uppercase border-r-2 border-primary flex flex-col gap-2 p-4 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:block shrink-0 ${
+				className={`fixed inset-y-0 left-0 z-50 w-72 bg-surface text-primary font-headline font-extrabold text-lg uppercase border-r-2 border-primary flex flex-col gap-2 p-4 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:flex lg:flex-col shrink-0 ${
 					isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
 				}`}
 			>
 				{/* Mobile Close Button (Inside Sidebar) */}
 				<div className="flex justify-between items-center lg:hidden mb-2">
 					<Link
-						to="/app/dashboard"
+						to="/"
 						className="text-xl md:text-2xl font-black italic tracking-tighter text-primary hover:scale-105 transition-transform"
 					>
 						LOCKED-IN
@@ -132,7 +132,7 @@ const ProtectedLayout = ({ user }) => {
 
 					<div className="flex-1 flex justify-center w-1/3">
 						<Link
-							to="/app/dashboard"
+							to="/"
 							className="text-xl md:text-2xl font-black italic tracking-tighter text-primary hover:scale-105 transition-transform"
 						>
 							LOCKED-IN

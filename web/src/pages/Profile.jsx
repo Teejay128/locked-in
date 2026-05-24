@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db, auth } from "../firebase";
+import Card from "../components/stitch/Card";
+import PopButton from "../components/stitch/PopButton";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -202,144 +204,160 @@ const ProfileSettings = () => {
 			{/* ==============================
           CARD 1: PUBLIC PROFILE
       ============================== */}
-			<div className="card bg-base-100 shadow-xl border border-base-200">
-				<div className="card-body">
-					<h2 className="card-title border-b border-base-200 pb-2 mb-4">
-						Public Info
-					</h2>
+			<Card className="bg-surface-container-lowest">
+				<h2 className="font-headline font-black text-xl border-b border-primary/20 pb-2 mb-4 uppercase">
+					Public Info
+				</h2>
 
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-						{/* Email (Read Only) */}
-						<div className="form-control">
-							<label className="label">
-								<span className="label-text">
-									Email Address
-								</span>
-								<span className="label-text-alt text-warning">
-									Cannot be changed
-								</span>
-							</label>
-							<input
-								type="email"
-								value={user?.email || ""}
-								disabled
-								className="input input-bordered bg-base-200 text-base-content/50 cursor-not-allowed"
-							/>
-						</div>
-
-						{/* Username */}
-						<div className="form-control">
-							<label className="label" htmlFor="username">
-								<span className="label-text">Display Name</span>
-							</label>
-							<input
-								type="text"
-								id="username"
-								value={username}
-								onChange={(e) => setUsername(e.target.value)}
-								className="input input-bordered focus:input-primary"
-								placeholder="How should we call you?"
-							/>
-						</div>
-
-						{/* Bio (Full Width) */}
-						<div className="form-control md:col-span-2">
-							<label className="label" htmlFor="bio">
-								<span className="label-text">Bio / About</span>
-							</label>
-							<textarea
-								id="bio"
-								value={bio}
-								onChange={(e) => setBio(e.target.value)}
-								className="textarea textarea-bordered h-32 focus:textarea-primary resize-none"
-								placeholder="Tell us about your coding journey..."
-							></textarea>
-						</div>
+				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+					{/* Email (Read Only) */}
+					<div className="form-control">
+						<label className="label">
+							<span className="label-text font-label font-bold text-xs uppercase tracking-wider text-base-content/50">
+								Email Address
+							</span>
+							<span className="label-text-alt text-error font-label font-bold text-[10px] uppercase">
+								Cannot be changed
+							</span>
+						</label>
+						<input
+							type="email"
+							value={user?.email || ""}
+							disabled
+							className="input input-bordered bg-base-200 text-base-content/50 cursor-not-allowed border-2 border-primary rounded-lg p-3 font-label"
+						/>
 					</div>
 
-					<div className="card-actions justify-end mt-4">
-						<button
-							onClick={handleSaveChanges}
-							className={`btn btn-primary ${saving ? "loading" : ""}`}
-							disabled={saving}
-						>
-							{saving ? "Saving Changes..." : "Save Changes"}
-						</button>
+					{/* Username */}
+					<div className="form-control">
+						<label className="label" htmlFor="username">
+							<span className="label-text font-label font-bold text-xs uppercase tracking-wider text-base-content/50">Display Name</span>
+						</label>
+						<input
+							type="text"
+							id="username"
+							value={username}
+							onChange={(e) => setUsername(e.target.value)}
+							className="input input-bordered focus:input-primary border-2 border-primary rounded-lg p-3 font-label focus:outline-none"
+							placeholder="How should we call you?"
+						/>
+					</div>
+
+					{/* Bio (Full Width) */}
+					<div className="form-control md:col-span-2">
+						<label className="label" htmlFor="bio">
+							<span className="label-text font-label font-bold text-xs uppercase tracking-wider text-base-content/50">Bio / About</span>
+						</label>
+						<textarea
+							id="bio"
+							value={bio}
+							onChange={(e) => setBio(e.target.value)}
+							className="textarea textarea-bordered h-32 focus:textarea-primary resize-none border-2 border-primary rounded-lg p-3 font-body focus:outline-none"
+							placeholder="Tell us about your coding journey..."
+						></textarea>
 					</div>
 				</div>
-			</div>
+
+				<div className="flex justify-end mt-6">
+					<PopButton
+						onClick={handleSaveChanges}
+						variant="primary"
+						disabled={saving}
+					>
+						{saving ? "Saving Changes..." : "Save Changes"}
+					</PopButton>
+				</div>
+			</Card>
 
 			{/* ==============================
           CARD 2: DEVELOPER ZONE (API KEY)
       ============================== */}
-			<div className="card bg-base-100 shadow-xl border border-base-200">
-				<div className="card-body">
-					<div className="flex justify-between items-center border-b border-base-200 pb-2 mb-4">
-						<h2 className="card-title text-error">
-							Developer Zone
-						</h2>
-						<div className="badge badge-outline">
-							Sensitive Data
-						</div>
-					</div>
-
-					<p className="text-sm text-base-content/70 mb-4">
-						Use this API key to authenticate requests from your
-						external scripts or CLI tools.
-						<span className="font-bold text-error">
-							{" "}
-							Do not share this key.
-						</span>
-					</p>
-
-					{/* API Key Terminal Box */}
-					<div className="bg-neutral text-neutral-content rounded-lg p-1 flex flex-col md:flex-row items-center justify-between gap-2 shadow-inner">
-						{/* The Key Display */}
-						<div className="flex-1 p-3 font-mono text-sm break-all text-center md:text-left">
-							{apiKey ? (
-								<span>
-									{apiKey.slice(0, 12)}
-									<span className="opacity-50 tracking-widest">
-										•••••••••••••
-									</span>
-									{apiKey.slice(-6)}
-								</span>
-							) : (
-								<span className="italic opacity-50">
-									No API key generated yet
-								</span>
-							)}
-						</div>
-
-						{/* Actions */}
-						<div className="flex gap-1 p-1 w-full md:w-auto">
-							<button
-								className="btn btn-sm btn-ghost text-neutral-content hover:bg-neutral-focus flex-1"
-								onClick={copyToClipboard}
-								title="Copy to clipboard"
-							>
-								{copied ? (
-									<span className="text-success font-bold">
-										Copied!
-									</span>
-								) : (
-									<CopyIcon />
-								)}
-							</button>
-
-							<div className="divider divider-horizontal mx-0 bg-neutral-content/20 w-px"></div>
-
-							<button
-								className={`btn btn-sm btn-ghost text-error hover:bg-error/20 flex-1 ${generating ? "loading" : ""}`}
-								onClick={handleRegenerateApiKey}
-								title="Regenerate Key"
-							>
-								{generating ? "" : <RegenerateIcon />}
-							</button>
-						</div>
+			<Card className="bg-surface-container-lowest border-error">
+				<div className="flex justify-between items-center border-b border-error/20 pb-2 mb-4">
+					<h2 className="font-headline font-black text-xl text-error uppercase">
+						Developer Zone
+					</h2>
+					<div className="badge badge-error border-error text-error font-label font-bold text-xs uppercase px-2 py-1 rounded">
+						Sensitive Data
 					</div>
 				</div>
-			</div>
+
+				<p className="text-sm font-body text-base-content/70 mb-4">
+					Use this API key to authenticate requests from your
+					external scripts or CLI tools.
+					<span className="font-bold text-error">
+						{" "}
+						Do not share this key.
+					</span>
+				</p>
+
+				{/* API Key Terminal Box */}
+				<div className="bg-inverse-surface text-on-primary-container rounded-lg p-2 border-2 border-primary flex flex-col md:flex-row items-center justify-between gap-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+					{/* The Key Display */}
+					<div className="flex-1 p-3 font-mono text-sm break-all text-center md:text-left text-white">
+						{apiKey ? (
+							<span>
+								{apiKey.slice(0, 12)}
+								<span className="opacity-50 tracking-widest">
+									•••••••••••••
+								</span>
+								{apiKey.slice(-6)}
+							</span>
+						) : (
+							<span className="italic opacity-50">
+								No API key generated yet
+							</span>
+						)}
+					</div>
+
+					{/* Actions */}
+					<div className="flex gap-2 p-1 w-full md:w-auto">
+						<PopButton
+							className="py-2 px-3 text-xs flex-1"
+							onClick={copyToClipboard}
+							title="Copy to clipboard"
+						>
+							{copied ? (
+								<span className="text-success font-bold">
+									Copied!
+								</span>
+							) : (
+								<div className="flex items-center gap-1">
+									<CopyIcon />
+									<span>Copy</span>
+								</div>
+							)}
+						</PopButton>
+
+						{apiKey ? (
+							<PopButton
+								variant="danger"
+								className="py-2 px-3 text-xs flex-1"
+								onClick={handleRegenerateApiKey}
+								disabled={generating}
+								title="Regenerate Key"
+							>
+								{generating ? "..." : (
+									<div className="flex items-center gap-1">
+										<RegenerateIcon />
+										<span>Regen</span>
+									</div>
+								)}
+							</PopButton>
+						) : (
+							<PopButton
+								variant="primary"
+								className="py-2 px-3 text-xs flex-1"
+								onClick={handleRegenerateApiKey}
+								disabled={generating}
+								title="Generate Key"
+							>
+								{generating ? "..." : "Generate Key"}
+							</PopButton>
+						)}
+					</div>
+				</div>
+			</Card>
 		</div>
 	);
 };

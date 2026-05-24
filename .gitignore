@@ -75,3 +75,8 @@ node_modules/
 
 # dataconnect generated files
 .dataconnect
+
+# Local Agent & VSCode Files
+.agents/
+.vscode/
+stitch_designs/

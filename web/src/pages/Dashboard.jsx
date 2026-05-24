@@ -4,6 +4,7 @@ import { doc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
 
 import EntryComponent from "../components/EntryComponent";
+import Card from "../components/stitch/Card";
 
 // const testEntryData = {
 // 	success: true,
@@ -111,7 +112,6 @@ const Dashboard = ({ user }) => {
 					<p className="text-base-content/60 mt-1 text-lg">
 						Welcome back,{" "}
 						<span className="text-primary font-bold">
-							Welcome back,{" "}
 							{user.displayName || user.email.split("@")[0]}
 						</span>
 					</p>
@@ -123,9 +123,16 @@ const Dashboard = ({ user }) => {
       ============================== */}
 			<section className="grid grid-cols-1 md:grid-cols-3 gap-6">
 				{/* Current Streak Stat */}
-				<div className="stats shadow bg-base-100 border border-base-200">
-					<div className="stat">
-						<div className="stat-figure text-primary">
+				<Card>
+					<div className="flex justify-between items-center">
+						<div>
+							<div className="font-label font-bold text-xs uppercase tracking-wider text-base-content/50">Current Streak</div>
+							<div className="text-3xl font-headline font-black text-primary mt-1">
+								{currentStreak} Days
+							</div>
+							<div className="text-sm font-body mt-1 text-base-content/70">Keep the fire burning!</div>
+						</div>
+						<div className="text-primary bg-surface-container-low p-3 rounded-lg border-2 border-primary">
 							<svg
 								xmlns="http://www.w3.org/2000/svg"
 								fill="none"
@@ -140,44 +147,37 @@ const Dashboard = ({ user }) => {
 								></path>
 							</svg>
 						</div>
-						<div className="stat-title">Current Streak</div>
-						<div className="stat-value text-primary">
-							{currentStreak} Days
-						</div>
-						<div className="stat-desc">Keep the fire burning!</div>
 					</div>
-				</div>
+				</Card>
 
 				{/* Weekly Progress Visual */}
-				<div className="card bg-base-100 shadow border border-base-200 md:col-span-2">
-					<div className="card-body p-4 md:p-6">
-						<h2 className="card-title text-sm uppercase text-base-content/50">
-							This Week
-						</h2>
-						<div className="flex justify-between items-center mt-2">
-							{weekDays.map((day, index) => (
+				<Card className="md:col-span-2">
+					<h2 className="font-label font-bold text-xs uppercase tracking-wider text-base-content/50 mb-4">
+						This Week
+					</h2>
+					<div className="flex justify-between items-center mt-2">
+						{weekDays.map((day, index) => (
+							<div
+								key={day}
+								className="flex flex-col items-center gap-2"
+							>
 								<div
-									key={day}
-									className="flex flex-col items-center gap-2"
-								>
-									<div
-										className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all
+									className={`w-10 h-10 rounded-full flex items-center justify-center font-headline font-black border-2 border-primary transition-all
                       ${
 							index < activeStreakDays
-								? "bg-primary text-primary-content shadow-lg scale-110"
-								: "bg-base-200 text-base-content/40"
+								? "bg-primary text-surface-container-lowest shadow-[2px_2px_0px_0px_#000000] scale-110"
+								: "bg-surface-container-low text-primary/40"
 						}`}
-									>
-										{index < activeStreakDays
-											? "✓"
-											: day.charAt(0)}
-									</div>
-									<span className="text-xs">{day}</span>
+								>
+									{index < activeStreakDays
+										? "✓"
+										: day.charAt(0)}
 								</div>
-							))}
-						</div>
+								<span className="text-xs font-label font-bold">{day}</span>
+							</div>
+						))}
 					</div>
-				</div>
+				</Card>
 			</section>
 
 			{/* ==============================
@@ -194,26 +194,26 @@ const Dashboard = ({ user }) => {
 			{/* ==============================
           4. LIFETIME STATS (Secondary Info)
       ============================== */}
-			<section className="stats w-full shadow bg-base-200/50">
-				<div className="stat place-items-center">
-					<div className="stat-title">Longest Streak</div>
-					<div className="stat-value text-secondary">
+			<section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+				<Card className="text-center" variant="low">
+					<div className="font-label font-bold text-xs uppercase tracking-wider text-base-content/50">Longest Streak</div>
+					<div className="text-3xl font-headline font-black text-primary mt-2">
 						{longestStreak}
 					</div>
-					<div className="stat-desc">Days in a row</div>
-				</div>
+					<div className="text-sm font-body mt-1 text-base-content/70">Days in a row</div>
+				</Card>
 
-				<div className="stat place-items-center">
-					<div className="stat-title">Total Entries</div>
-					<div className="stat-value">{totalEntries}</div>
-					<div className="stat-desc">Lifetime contributions</div>
-				</div>
+				<Card className="text-center" variant="low">
+					<div className="font-label font-bold text-xs uppercase tracking-wider text-base-content/50">Total Entries</div>
+					<div className="text-3xl font-headline font-black text-primary mt-2">{totalEntries}</div>
+					<div className="text-sm font-body mt-1 text-base-content/70">Lifetime contributions</div>
+				</Card>
 
-				<div className="stat place-items-center">
-					<div className="stat-title">Level</div>
-					<div className="stat-value">Novice</div>
-					<div className="stat-desc">Next: Apprentice</div>
-				</div>
+				<Card className="text-center" variant="low">
+					<div className="font-label font-bold text-xs uppercase tracking-wider text-base-content/50">Level</div>
+					<div className="text-3xl font-headline font-black text-primary mt-2">Novice</div>
+					<div className="text-sm font-body mt-1 text-base-content/70">Next: Apprentice</div>
+				</Card>
 			</section>
 		</div>
 	);

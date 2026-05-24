@@ -1,9 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, Outlet } from "react-router-dom";
+import { auth } from "../firebase";
 import TinyButton from "../components/stitch/TinyButton";
 
 const OpenLayout = () => {
 	const [dropdownOpen, setDropdownOpen] = useState(false);
+	const [user, setUser] = useState(auth.currentUser);
+
+	useEffect(() => {
+		const unsubscribe = auth.onAuthStateChanged((u) => {
+			setUser(u);
+		});
+		return () => unsubscribe();
+	}, []);
 
 	return (
 		<div className="bg-surface text-on-background min-h-screen pb-12 flex flex-col pt-6">
@@ -24,31 +33,31 @@ const OpenLayout = () => {
 					{/* Desktop Links */}
 					<div className="hidden md:flex items-center gap-8 font-label font-bold text-sm">
 						<Link
-							to="/quick-tools"
+							to="/tools"
 							className="hover:underline decoration-primary decoration-2 transition-all"
 						>
-							Quick Tools
+							Tools
 						</Link>
 						<Link
-							to="/journal"
+							to="/about"
 							className="hover:underline decoration-primary decoration-2 transition-all"
 						>
-							Journal
+							About
 						</Link>
 					</div>
 
 					<div className="flex items-center">
 						{/* Desktop Lock-In Button */}
 						<Link
-							to="/register"
+							to={user ? "/app/dashboard" : "/register"}
 							className="hidden md:flex bg-primary text-on-primary-container px-5 py-2.5 border-2 border-primary font-bold neo-shadow active-press items-center gap-2 rounded-lg text-base shrink-0"
 						>
-							Lock-in
+							{user ? "Dashboard" : "Lock-in"}
 							<span
 								className="material-symbols-outlined text-sm"
-								data-icon="login"
+								data-icon={user ? "dashboard" : "login"}
 							>
-								login
+								{user ? "dashboard" : "login"}
 							</span>
 						</Link>
 
@@ -77,36 +86,36 @@ const OpenLayout = () => {
 								<ul className="absolute right-0 top-full mt-4 z-60 p-2 shadow-xl bg-surface-container-lowest border-2 border-primary rounded-xl w-52 font-label font-bold flex flex-col gap-1">
 									<li>
 										<Link
-											to="/quick-tools"
+											to="/tools"
 											className="block px-4 py-2 hover:bg-primary/10 rounded-lg transition-colors"
 											onClick={() =>
 												setDropdownOpen(false)
 											}
 										>
-											Quick Tools
+											Tools
 										</Link>
 									</li>
 									<li>
 										<Link
-											to="/journal"
+											to="/about"
 											className="block px-4 py-2 hover:bg-primary/10 rounded-lg transition-colors"
 											onClick={() =>
 												setDropdownOpen(false)
 											}
 										>
-											Journal
+											About
 										</Link>
 									</li>
 									<div className="my-1 border-t-2 border-primary/20"></div>
 									<li>
 										<Link
-											to="/register"
+											to={user ? "/app/dashboard" : "/register"}
 											className="bg-primary text-on-primary-container hover:bg-primary/90 flex justify-center text-center py-2 mt-1 neo-shadow-sm active-press rounded-lg transition-all"
 											onClick={() =>
 												setDropdownOpen(false)
 											}
 										>
-											Lock-In
+											{user ? "Dashboard" : "Lock-In"}
 										</Link>
 									</li>
 								</ul>
