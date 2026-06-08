@@ -4,6 +4,7 @@ import { db, auth } from "../firebase";
 import EntryComponent from "../components/EntryComponent";
 import Card from "../components/stitch/Card";
 import PopButton from "../components/stitch/PopButton";
+import AccentBar from "../components/stitch/AccentBar";
 
 const Journal = ({ user }) => {
 	const [entries, setEntries] = useState([]);
@@ -20,6 +21,7 @@ const Journal = ({ user }) => {
 	const [isCreating, setIsCreating] = useState(false);
 	const [creationError, setCreationError] = useState(null);
 	const [newEntryData, setNewEntryData] = useState(null);
+	const [newContent, setNewContent] = useState("");
 
 	// Mock state for the AI personalized message
 	const [aiSuggestion, setAiSuggestion] = useState(
@@ -119,6 +121,15 @@ const Journal = ({ user }) => {
 			</div>
 		);
 	}
+	const formatDate = (dateStr) => {
+		return new Date(dateStr).toLocaleString(undefined, {
+			month: "short",
+			day: "numeric",
+			year: "numeric",
+			hour: "numeric",
+			minute: "2-digit",
+		});
+	};
 
 	return (
 		<div className="w-full max-w-4xl mx-auto space-y-8 pb-12">
@@ -129,7 +140,7 @@ const Journal = ({ user }) => {
 				<h1 className="text-3xl font-black italic tracking-tighter uppercase font-headline text-primary">
 					Welcome back, {user.displayName || user.email.split("@")[0]}
 				</h1>
-				<Card variant="low" padding="small" shadow="none" className="mt-4 flex items-start gap-4">
+				<AccentBar className="mt-4 flex items-start gap-4">
 					<span className="text-2xl mt-1">🧠</span>
 					<div>
 						<h3 className="font-headline font-black text-sm text-primary uppercase">
@@ -137,7 +148,7 @@ const Journal = ({ user }) => {
 						</h3>
 						<div className="font-body text-base mt-1 text-base-content">{aiSuggestion}</div>
 					</div>
-				</Card>
+				</AccentBar>
 			</div>
 
 			{/* ==============================
@@ -145,25 +156,56 @@ const Journal = ({ user }) => {
       ============================== */}
 			<div className="space-y-4">
 				{/* --- SLOT 1: NEW ENTRY --- */}
-				<Card padding="none" className="overflow-hidden bg-surface-container-lowest">
+				<Card variant="container" padding="none" className="overflow-hidden bg-surface-container-lowest">
 					<button
-						className={`w-full text-left px-6 py-4 flex justify-between items-center hover:bg-surface-container-low transition-colors font-headline font-extrabold uppercase text-sm ${expandedId === "new" ? "bg-surface-container-low" : ""}`}
+						className={`w-full text-left px-6 py-4 flex justify-between items-center transition-colors font-headline font-extrabold uppercase text-sm ${expandedId === "new" ? "bg-surface-container-lowest" : "bg-transparent hover:bg-surface-container-low"}`}
 						onClick={() => toggleAccordion("new")}
 					>
-						<span className="flex items-center gap-2">
-							<span>✍️</span> Log a New Update
-						</span>
-						<span
-							className="text-sm opacity-50 transition-transform duration-300"
-							style={{
-								transform:
-									expandedId === "new"
-										? "rotate(180deg)"
-										: "rotate(0deg)",
-							}}
-						>
-							▼
-						</span>
+						{/* Left Side */}
+						<div className="flex items-center gap-2 truncate pr-4 text-xs font-bold font-headline uppercase tracking-wider text-primary">
+							<span>{formatDate(new Date())}</span>
+							<span className="opacity-40">-</span>
+							{newEntryData ? (
+								<span className="truncate normal-case font-body font-normal text-sm text-on-surface/80">
+									{newEntryData.content.slice(0, 50)}{newEntryData.content.length > 50 ? "..." : ""}
+								</span>
+							) : newContent.trim() ? (
+								<span className="truncate normal-case font-body font-normal text-sm text-on-surface/80">
+									{newContent.slice(0, 50)}{newContent.length > 50 ? "..." : ""}
+								</span>
+							) : (
+								<span className="text-primary/70">LOG A NEW UPDATE</span>
+							)}
+						</div>
+
+						{/* Right Side */}
+						<div className="flex items-center gap-4 shrink-0 font-label text-xs">
+							<span className="opacity-40 font-mono tracking-widest uppercase">NEW</span>
+							{newEntryData ? (
+								<span className="material-symbols-outlined text-[28px] text-success font-normal" style={{ fontVariationSettings: '"FILL" 1' }}>
+									check_circle
+								</span>
+							) : isCreating ? (
+								<span className="material-symbols-outlined text-[28px] text-primary animate-spin font-normal">
+									sync
+								</span>
+							) : (
+								<span className="material-symbols-outlined text-[28px] text-primary/40 font-normal">
+									radio_button_unchecked
+								</span>
+							)}
+							<span
+								className="material-symbols-outlined text-[20px] opacity-40 transition-transform duration-300"
+								style={{
+									transform:
+										expandedId === "new"
+											? "rotate(180deg)"
+											: "rotate(0deg)",
+								}}
+							>
+								expand_more
+							</span>
+						</div>
 					</button>
 
 					<div
@@ -176,6 +218,8 @@ const Journal = ({ user }) => {
 								isError={!!creationError}
 								errorMessage={creationError}
 								onSubmit={handleNewEntrySubmit}
+								content={newContent}
+								setContent={setNewContent}
 							/>
 							{/* Reset button to write another entry without refreshing */}
 							{newEntryData && (
@@ -185,6 +229,7 @@ const Journal = ({ user }) => {
 										className="py-1.5 px-3 text-xs"
 										onClick={() => {
 											setNewEntryData(null);
+											setNewContent("");
 											setExpandedId("new");
 										}}
 									>
@@ -225,52 +270,57 @@ const Journal = ({ user }) => {
 					</div>
 				)}
 
-				{entries.map((entry) => (
-					<Card
-						key={entry.entryId}
-						padding="none"
-						className="overflow-hidden bg-surface-container-lowest"
-					>
-						<button
-							className={`w-full text-left px-6 py-4 flex justify-between items-center hover:bg-surface-container-low transition-colors font-headline font-extrabold uppercase text-sm ${expandedId === entry.entryId ? "bg-surface-container-low" : ""}`}
-							onClick={() => toggleAccordion(entry.entryId)}
+				{entries.map((entry) => {
+					const isExpanded = expandedId === entry.entryId;
+					return (
+						<Card
+							key={entry.entryId}
+							variant="container"
+							padding="none"
+							className="overflow-hidden bg-surface-container-lowest"
 						>
-							<div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 truncate pr-4">
-								<span className="whitespace-nowrap font-label font-bold text-primary">
-									{new Date(
-										entry.createdAt,
-									).toLocaleDateString(undefined, {
-										month: "short",
-										day: "numeric",
-										year: "numeric",
-									})}
-								</span>
-								<span className="text-xs opacity-60 truncate max-w-[200px] sm:max-w-md font-body lowercase">
-									- {entry.content.slice(0, 50)}...
-								</span>
-							</div>
-							<span
-								className="text-sm opacity-50 transition-transform duration-300 shrink-0"
-								style={{
-									transform:
-										expandedId === entry.entryId
-											? "rotate(180deg)"
-											: "rotate(0deg)",
-								}}
+							<button
+								className={`w-full text-left px-6 py-4 flex justify-between items-center transition-colors font-headline font-extrabold uppercase text-sm ${isExpanded ? "bg-surface-container-lowest" : "bg-transparent hover:bg-surface-container-low"}`}
+								onClick={() => toggleAccordion(entry.entryId)}
 							>
-								▼
-							</span>
-						</button>
+								{/* Left Side */}
+								<div className="flex items-center gap-2 truncate pr-4 text-xs font-bold font-headline uppercase tracking-wider text-primary">
+									<span>{formatDate(entry.createdAt)}</span>
+									<span className="opacity-40">-</span>
+									<span className="truncate normal-case font-body font-normal text-sm text-on-surface/80">
+										{entry.content.slice(0, 50)}{entry.content.length > 50 ? "..." : ""}
+									</span>
+								</div>
 
-						<div
-							className={`transition-all duration-300 ease-in-out ${expandedId === entry.entryId ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0 overflow-hidden"}`}
-						>
-							<div className="p-4 pt-0">
-								<EntryComponent entry={entry} />
+								{/* Right Side */}
+								<div className="flex items-center gap-4 shrink-0 font-label text-xs">
+									<span className="opacity-40 font-mono tracking-widest uppercase">
+										{entry.entryId.slice(0, 8)}
+									</span>
+									<span className="material-symbols-outlined text-[28px] text-success font-normal" style={{ fontVariationSettings: '"FILL" 1' }}>
+										check_circle
+									</span>
+									<span
+										className="material-symbols-outlined text-[20px] opacity-40 transition-transform duration-300"
+										style={{
+											transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)",
+										}}
+									>
+										expand_more
+									</span>
+								</div>
+							</button>
+
+							<div
+								className={`transition-all duration-300 ease-in-out ${isExpanded ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0 overflow-hidden"}`}
+							>
+								<div className="p-4 pt-0">
+									<EntryComponent entry={entry} />
+								</div>
 							</div>
-						</div>
-					</Card>
-				))}
+						</Card>
+					);
+				})}
 			</div>
 		</div>
 	);

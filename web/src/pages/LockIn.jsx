@@ -28,10 +28,10 @@ const LockIn = ({ defaultIsRegister = false }) => {
 				if (name) {
 					await updateProfile(userCredential.user, { displayName: name });
 				}
-				navigate("/app/dashboard");
+				navigate("/dashboard");
 			} else {
 				await signInWithEmailAndPassword(auth, email, password);
-				navigate("/app/dashboard");
+				navigate("/dashboard");
 			}
 		} catch (err) {
 			console.log(err);
@@ -49,7 +49,7 @@ const LockIn = ({ defaultIsRegister = false }) => {
 		setLoading(true);
 		try {
 			await signInWithPopup(auth, googleProvider);
-			navigate("/app/dashboard");
+			navigate("/dashboard");
 		} catch (err) {
 			console.log(err);
 			const message = err.message
@@ -106,7 +106,7 @@ const LockIn = ({ defaultIsRegister = false }) => {
 									Full Name
 								</label>
 								<input
-									className="w-full pt-6 pb-2 px-3 bg-surface border-4 border-primary rounded-lg font-label focus:outline-none transition-all placeholder:text-transparent focus:placeholder:text-on-surface-variant/50"
+									className="neo-input w-full pt-6 pb-2 px-3 placeholder:text-transparent focus:placeholder:text-on-surface-variant/50"
 									id="name"
 									placeholder="JOHN DOE"
 									type="text"
@@ -125,7 +125,7 @@ const LockIn = ({ defaultIsRegister = false }) => {
 								Email Address
 							</label>
 							<input
-								className="w-full pt-6 pb-2 px-3 bg-surface border-4 border-primary rounded-lg font-label focus:outline-none transition-all placeholder:text-transparent focus:placeholder:text-on-surface-variant/50"
+								className="neo-input w-full pt-6 pb-2 px-3 placeholder:text-transparent focus:placeholder:text-on-surface-variant/50"
 								id="email"
 								placeholder="REBEL@LOCKEDIN.TERMINAL"
 								type="email"
@@ -144,7 +144,7 @@ const LockIn = ({ defaultIsRegister = false }) => {
 								Password
 							</label>
 							<input
-								className="w-full pt-6 pb-2 px-3 bg-surface border-4 border-primary rounded-lg font-label focus:outline-none transition-all placeholder:text-transparent focus:placeholder:text-on-surface-variant/50"
+								className="neo-input w-full pt-6 pb-2 px-3 placeholder:text-transparent focus:placeholder:text-on-surface-variant/50"
 								id="password"
 								placeholder="••••••••••••"
 								type="password"
@@ -156,7 +156,7 @@ const LockIn = ({ defaultIsRegister = false }) => {
 
 						{/* Primary CTA */}
 						<button
-							className={`w-full py-1 md:py-2 bg-primary text-on-primary-container font-headline font-extrabold text-md uppercase tracking-widest border-4 border-primary rounded-lg neo-shadow active-press transition-transform ${loading ? "opacity-70 cursor-not-allowed" : ""}`}
+							className={`btn-dark neo-btn w-full py-2.5 ${loading ? "opacity-70 cursor-not-allowed" : ""}`}
 							type="submit"
 							disabled={loading}
 						>
@@ -174,7 +174,7 @@ const LockIn = ({ defaultIsRegister = false }) => {
 
 						{/* Secondary CTA */}
 						<button
-							className="w-full py-2 md:py-3 bg-surface-container-lowest text-primary font-label font-bold text-sm md:text-base uppercase flex items-center justify-center gap-3 border-4 border-primary rounded-lg neo-shadow-sm active-press transition-transform"
+							className="btn neo-btn w-full py-2.5 flex items-center justify-center gap-3"
 							type="button"
 							onClick={handleGoogleLogin}
 							disabled={loading}
@@ -224,7 +224,8 @@ const LockIn = ({ defaultIsRegister = false }) => {
 						{isRegister ? "Already have an account?" : "New here?"}
 						<button
 							onClick={toggleMode}
-							className="inline-block px-3 py-1 bg-primary text-on-primary-container hover:bg-transparent hover:text-primary border-4 border-primary font-black text-sm uppercase tracking-wide transition-colors duration-200 active-press rounded-md"
+							className="btn-dark neo-btn text-xs py-1.5 px-3"
+							type="button"
 						>
 							{isRegister
 								? "Sign In Instead"

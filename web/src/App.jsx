@@ -8,8 +8,8 @@ import {
 import { auth } from "./firebase";
 
 import "./App.css";
-import OpenLayout from "./layouts/OpenLayout";
-import ProtectedLayout from "./layouts/ProtectedLayout";
+import AppLayout from "./layouts/AppLayout";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 import LandingPage from "./pages/Landing";
 import QuickTools from "./pages/QuickTools";
@@ -34,7 +34,6 @@ function App() {
 	}, []);
 
 	if (loading) {
-		// You can replace this later with a nice <LoadingSpinner /> component
 		return (
 			<div className="min-h-screen flex items-center justify-center">
 				Loading...
@@ -45,26 +44,29 @@ function App() {
 	return (
 		<Router>
 			<Routes>
-				<Route element={<OpenLayout />}>
-					<Route path="/" element={<LandingPage />} />
-					<Route path="/tools" element={<QuickTools />} />
-					<Route path="/about" element={<AboutPage />} />
-				</Route>
-
+				{/* Standalone Auth Pages */}
 				<Route path="/login" element={<LockInPage />} />
 				<Route
 					path="/register"
 					element={<LockInPage defaultIsRegister={true} />}
 				/>
 
-				<Route path="/app" element={<ProtectedLayout user={user} />}>
-					<Route
-						path="dashboard"
-						element={<Dashboard user={user} />}
-					/>
-					<Route path="profile" element={<Profile />} />
-					<Route path="journal" element={<Journal user={user} />} />
-					<Route path="tools" element={<QuickTools />} />
+				{/* Pages Wrapped in Unified AppLayout */}
+				<Route element={<AppLayout user={user} />}>
+					{/* Public Routes */}
+					<Route path="/" element={<LandingPage />} />
+					<Route path="/about" element={<AboutPage />} />
+					<Route path="/tools" element={<QuickTools />} />
+
+					{/* Protected Routes */}
+					<Route element={<ProtectedRoute user={user} />}>
+						<Route
+							path="/dashboard"
+							element={<Dashboard user={user} />}
+						/>
+						<Route path="/profile" element={<Profile />} />
+						<Route path="/journal" element={<Journal user={user} />} />
+					</Route>
 				</Route>
 
 				<Route path="*" element={<NotFoundPage />} />
@@ -74,3 +76,4 @@ function App() {
 }
 
 export default App;
+

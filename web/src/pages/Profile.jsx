@@ -204,7 +204,7 @@ const ProfileSettings = () => {
 			{/* ==============================
           CARD 1: PUBLIC PROFILE
       ============================== */}
-			<Card className="bg-surface-container-lowest">
+			<Card variant="naked">
 				<h2 className="font-headline font-black text-xl border-b border-primary/20 pb-2 mb-4 uppercase">
 					Public Info
 				</h2>
@@ -224,7 +224,7 @@ const ProfileSettings = () => {
 							type="email"
 							value={user?.email || ""}
 							disabled
-							className="input input-bordered bg-base-200 text-base-content/50 cursor-not-allowed border-2 border-primary rounded-lg p-3 font-label"
+							className="neo-input-disabled text-on-surface/50 cursor-not-allowed font-label w-full"
 						/>
 					</div>
 
@@ -238,7 +238,7 @@ const ProfileSettings = () => {
 							id="username"
 							value={username}
 							onChange={(e) => setUsername(e.target.value)}
-							className="input input-bordered focus:input-primary border-2 border-primary rounded-lg p-3 font-label focus:outline-none"
+							className="neo-input w-full"
 							placeholder="How should we call you?"
 						/>
 					</div>
@@ -252,7 +252,7 @@ const ProfileSettings = () => {
 							id="bio"
 							value={bio}
 							onChange={(e) => setBio(e.target.value)}
-							className="textarea textarea-bordered h-32 focus:textarea-primary resize-none border-2 border-primary rounded-lg p-3 font-body focus:outline-none"
+							className="neo-input h-32 w-full resize-none font-body"
 							placeholder="Tell us about your coding journey..."
 						></textarea>
 					</div>
@@ -272,39 +272,42 @@ const ProfileSettings = () => {
 			{/* ==============================
           CARD 2: DEVELOPER ZONE (API KEY)
       ============================== */}
-			<Card className="bg-surface-container-lowest border-error">
-				<div className="flex justify-between items-center border-b border-error/20 pb-2 mb-4">
+			<Card variant="dark" padding="large">
+				<div className="flex justify-between items-center border-b border-white/20 pb-2 mb-4">
 					<h2 className="font-headline font-black text-xl text-error uppercase">
 						Developer Zone
 					</h2>
-					<div className="badge badge-error border-error text-error font-label font-bold text-xs uppercase px-2 py-1 rounded">
+					<div className="badge badge-error border-error text-error bg-transparent font-label font-bold text-xs uppercase px-2 py-1 rounded">
 						Sensitive Data
 					</div>
 				</div>
 
-				<p className="text-sm font-body text-base-content/70 mb-4">
+				<p className="text-sm font-body text-gray-300 mb-4">
 					Use this API key to authenticate requests from your
 					external scripts or CLI tools.
-					<span className="font-bold text-error">
-						{" "}
+					<span className="font-bold text-error ml-1">
 						Do not share this key.
 					</span>
 				</p>
 
 				{/* API Key Terminal Box */}
-				<div className="bg-inverse-surface text-on-primary-container rounded-lg p-2 border-2 border-primary flex flex-col md:flex-row items-center justify-between gap-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+				<Card
+					variant="naked"
+					padding="none"
+					className="w-full flex flex-col md:flex-row justify-between items-center gap-2 border-white/20 bg-white/5"
+				>
 					{/* The Key Display */}
-					<div className="flex-1 p-3 font-mono text-sm break-all text-center md:text-left text-white">
+					<div className="flex-1 p-2 font-mono text-sm break-all text-center md:text-left text-white font-bold">
 						{apiKey ? (
 							<span>
 								{apiKey.slice(0, 12)}
-								<span className="opacity-50 tracking-widest">
+								<span className="opacity-40 tracking-widest text-white/60">
 									•••••••••••••
 								</span>
 								{apiKey.slice(-6)}
 							</span>
 						) : (
-							<span className="italic opacity-50">
+							<span className="italic opacity-50 text-white/60">
 								No API key generated yet
 							</span>
 						)}
@@ -313,9 +316,10 @@ const ProfileSettings = () => {
 					{/* Actions */}
 					<div className="flex gap-2 p-1 w-full md:w-auto">
 						<PopButton
-							className="py-2 px-3 text-xs flex-1"
+							className="py-2 px-3 text-xs flex-1 bg-surface-container-lowest"
 							onClick={copyToClipboard}
 							title="Copy to clipboard"
+							shadow="xs"
 						>
 							{copied ? (
 								<span className="text-success font-bold">
@@ -351,12 +355,13 @@ const ProfileSettings = () => {
 								onClick={handleRegenerateApiKey}
 								disabled={generating}
 								title="Generate Key"
+								shadow="xs"
 							>
 								{generating ? "..." : "Generate Key"}
 							</PopButton>
 						)}
 					</div>
-				</div>
+				</Card>
 			</Card>
 		</div>
 	);

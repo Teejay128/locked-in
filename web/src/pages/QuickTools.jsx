@@ -89,12 +89,12 @@ function QuickTools() {
 						</div>
 
 						<form onSubmit={handleSocialSubmit}>
-							<Card className="bg-surface-container-lowest">
+							<Card variant="container" className="bg-surface-container-lowest">
 								<label className="label font-label font-bold text-xs uppercase tracking-wider text-base-content/50 mb-2 block">
 									Your Rough Notes
 								</label>
 								<textarea
-									className="textarea textarea-bordered w-full h-48 text-lg border-2 border-primary rounded-lg p-3 font-body focus:outline-none transition-all resize-none bg-surface-container-low/30 focus:bg-surface-container-lowest"
+									className="neo-input w-full h-48 text-lg resize-none font-body"
 									placeholder="e.g., Struggled with React Context today but finally fixed the re-rendering issue..."
 									value={socialInput}
 									onChange={(e) =>
@@ -120,6 +120,7 @@ function QuickTools() {
 										variant="primary"
 										className="py-2 px-6"
 										disabled={socialLoading || !socialInput.trim()}
+										shadow="md"
 									>
 										{socialLoading ? "Generating..." : "Generate Posts"}
 									</PopButton>
@@ -132,7 +133,7 @@ function QuickTools() {
 					<div className="relative w-full">
 						{/* STATE A: INFOGRAPHIC (Show when no result yet) */}
 						{!socialResult && !socialLoading && (
-							<Card shadow="none" className="border-dashed bg-surface-container-lowest p-8 h-full flex flex-col items-center justify-center text-center opacity-70 min-h-[300px]">
+							<Card variant="naked" className="border-dashed bg-surface-container-lowest p-8 h-full flex flex-col items-center justify-center text-center opacity-70 min-h-[300px]">
 								{/* Simple CSS Graphic Placeholder */}
 								<div className="flex items-center gap-4 mb-6">
 									<div className="w-16 h-20 bg-base-300 rounded-lg animate-pulse"></div>
@@ -176,7 +177,7 @@ function QuickTools() {
 						{socialResult && (
 							<div className="space-y-6 animate-fade-in-up">
 								{/* Twitter Result */}
-								<Card className="bg-white border-l-4 border-[#1DA1F2] text-gray-800" shadow="large">
+								<Card variant="naked" className="bg-white border-l-4 border-[#1DA1F2] text-gray-800">
 									<h3 className="font-headline font-black text-[#1DA1F2] flex items-center gap-2 text-sm uppercase tracking-wide border-b border-[#1DA1F2]/20 pb-2">
 										<svg
 											className="w-4 h-4"
@@ -196,7 +197,7 @@ function QuickTools() {
 											target="_blank"
 											rel="noreferrer"
 										>
-											<PopButton className="py-1.5 px-4 text-xs">
+											<PopButton className="py-1.5 px-4 text-xs" shadow="sm">
 												Tweet This
 											</PopButton>
 										</a>
@@ -204,7 +205,7 @@ function QuickTools() {
 								</Card>
 
 								{/* LinkedIn Result */}
-								<Card className="bg-white border-l-4 border-[#0A66C2] text-gray-800" shadow="large">
+								<Card variant="naked" className="bg-white border-l-4 border-[#0A66C2] text-gray-800">
 									<h3 className="font-headline font-black text-[#0A66C2] flex items-center gap-2 text-sm uppercase tracking-wide border-b border-[#0A66C2]/20 pb-2">
 										<svg
 											className="w-4 h-4"
@@ -224,7 +225,7 @@ function QuickTools() {
 											target="_blank"
 											rel="noreferrer"
 										>
-											<PopButton variant="primary" className="py-1.5 px-4 text-xs">
+											<PopButton variant="primary" className="py-1.5 px-4 text-xs" shadow="sm">
 												Post This
 											</PopButton>
 										</a>
@@ -261,7 +262,7 @@ function QuickTools() {
 							commit messages instantly.
 						</p>
 					</div>
-					<Card shadow="none" className="h-64 border-dashed bg-surface-container-low flex items-center justify-center">
+					<Card variant="naked" className="h-64 border-dashed bg-surface-container-low flex items-center justify-center">
 						<span className="font-headline font-black text-2xl text-primary/20 uppercase">
 							Coming Soon
 						</span>
@@ -287,12 +288,12 @@ function QuickTools() {
 
 					<div className="flex flex-col sm:flex-row gap-6 justify-center">
 						<Link to="/register">
-							<PopButton variant="primary" className="py-4 px-8 text-lg w-full sm:w-auto">
+							<PopButton variant="primary" className="py-4 px-8 text-lg w-full sm:w-auto" shadow="md">
 								Create Free Account
 							</PopButton>
 						</Link>
 						<Link to="/login">
-							<PopButton className="py-4 px-8 text-lg w-full sm:w-auto">
+							<PopButton className="py-4 px-8 text-lg w-full sm:w-auto" shadow="md">
 								Sign In
 							</PopButton>
 						</Link>

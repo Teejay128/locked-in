@@ -5,6 +5,7 @@ import { db } from "../firebase";
 
 import EntryComponent from "../components/EntryComponent";
 import Card from "../components/stitch/Card";
+import PopButton from "../components/stitch/PopButton";
 
 // const testEntryData = {
 // 	success: true,
@@ -30,6 +31,18 @@ const Dashboard = ({ user }) => {
 	const [entryError, setEntryError] = useState("");
 	const [entryLoading, setEntryLoading] = useState(false);
 	const [entryData, setEntryData] = useState(null);
+	const [newContent, setNewContent] = useState("");
+	const [isExpanded, setIsExpanded] = useState(true);
+
+	const formatDate = (dateStr) => {
+		return new Date(dateStr).toLocaleString(undefined, {
+			month: "short",
+			day: "numeric",
+			year: "numeric",
+			hour: "numeric",
+			minute: "2-digit",
+		});
+	};
 
 	const [dailyQuote, setDailyQuote] = useState(
 		"Locking in for today's motivation...",
@@ -101,13 +114,10 @@ const Dashboard = ({ user }) => {
 
 	return (
 		<div className="w-full max-w-5xl mx-auto space-y-8">
-			{/* ==============================
-          1. HEADER SECTION
-      ============================== */}
-			<header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+			<header className="flex flex-col gap-4">
 				<div>
-					<h1 className="text-3xl font-black text-base-content italic">
-						"{dailyQuote}"
+					<h1 className="text-3xl font-black text-base-content uppercase tracking-tight">
+						Dashboard
 					</h1>
 					<p className="text-base-content/60 mt-1 text-lg">
 						Welcome back,{" "}
@@ -116,6 +126,10 @@ const Dashboard = ({ user }) => {
 						</span>
 					</p>
 				</div>
+				<Card variant="naked" padding="small" className="italic font-bold flex items-center gap-3 font-mono text-sm md:text-base">
+					<span className="text-xl">💡</span>
+					<span>"{dailyQuote}"</span>
+				</Card>
 			</header>
 
 			{/* ==============================
@@ -123,7 +137,7 @@ const Dashboard = ({ user }) => {
       ============================== */}
 			<section className="grid grid-cols-1 md:grid-cols-3 gap-6">
 				{/* Current Streak Stat */}
-				<Card>
+				<Card variant="container">
 					<div className="flex justify-between items-center">
 						<div>
 							<div className="font-label font-bold text-xs uppercase tracking-wider text-base-content/50">Current Streak</div>
@@ -151,7 +165,7 @@ const Dashboard = ({ user }) => {
 				</Card>
 
 				{/* Weekly Progress Visual */}
-				<Card className="md:col-span-2">
+				<Card className="md:col-span-2" variant="container">
 					<h2 className="font-label font-bold text-xs uppercase tracking-wider text-base-content/50 mb-4">
 						This Week
 					</h2>
@@ -183,19 +197,93 @@ const Dashboard = ({ user }) => {
 			{/* ==============================
           3. NEW ENTRY AREA (The "Action" Center)
       ============================== */}
-			<EntryComponent
-				entry={entryData}
-				isError={!!entryError}
-				errorMessage={entryError}
-				isLoading={entryLoading}
-				onSubmit={handleNewEntry}
-			/>
+			<Card variant="container" padding="none" className="overflow-hidden bg-surface-container-lowest animate-fade-in-up">
+				<button
+					className={`w-full text-left px-6 py-4 flex justify-between items-center transition-colors font-headline font-extrabold uppercase text-sm ${isExpanded ? "bg-surface-container-lowest" : "bg-transparent hover:bg-surface-container-low"}`}
+					onClick={() => setIsExpanded(!isExpanded)}
+				>
+					{/* Left Side */}
+					<div className="flex items-center gap-2 truncate pr-4 text-xs font-bold font-headline uppercase tracking-wider text-primary">
+						<span>{formatDate(new Date())}</span>
+						<span className="opacity-40">-</span>
+						{entryData ? (
+							<span className="truncate normal-case font-body font-normal text-sm text-on-surface/80">
+								{entryData.content.slice(0, 50)}{entryData.content.length > 50 ? "..." : ""}
+							</span>
+						) : newContent.trim() ? (
+							<span className="truncate normal-case font-body font-normal text-sm text-on-surface/80">
+								{newContent.slice(0, 50)}{newContent.length > 50 ? "..." : ""}
+							</span>
+						) : (
+							<span className="text-primary/70">LOG A NEW UPDATE</span>
+						)}
+					</div>
+
+					{/* Right Side */}
+					<div className="flex items-center gap-4 shrink-0 font-label text-xs">
+						<span className="opacity-40 font-mono tracking-widest uppercase">NEW</span>
+						{entryData ? (
+							<span className="material-symbols-outlined text-[28px] text-success font-normal" style={{ fontVariationSettings: '"FILL" 1' }}>
+								check_circle
+							</span>
+						) : entryLoading ? (
+							<span className="material-symbols-outlined text-[28px] text-primary animate-spin font-normal">
+								sync
+							</span>
+						) : (
+							<span className="material-symbols-outlined text-[28px] text-primary/40 font-normal">
+								radio_button_unchecked
+							</span>
+						)}
+						<span
+							className="material-symbols-outlined text-[20px] opacity-40 transition-transform duration-300"
+							style={{
+								transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)",
+							}}
+						>
+							expand_more
+						</span>
+					</div>
+				</button>
+
+				<div
+					className={`transition-all duration-300 ease-in-out ${isExpanded ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0 overflow-hidden"}`}
+				>
+					<div className="p-4 pt-0">
+						<EntryComponent
+							entry={entryData}
+							isError={!!entryError}
+							errorMessage={entryError}
+							isLoading={entryLoading}
+							onSubmit={handleNewEntry}
+							content={newContent}
+							setContent={setNewContent}
+						/>
+						{/* Reset button to write another entry without refreshing */}
+						{entryData && (
+							<div className="flex justify-end mt-[-1rem] mb-2 pr-2">
+								<PopButton
+									variant="default"
+									className="py-1.5 px-3 text-xs"
+									onClick={() => {
+										setEntryData(null);
+										setNewContent("");
+										setIsExpanded(true);
+									}}
+								>
+									+ Start Another Entry
+								</PopButton>
+							</div>
+						)}
+					</div>
+				</div>
+			</Card>
 
 			{/* ==============================
           4. LIFETIME STATS (Secondary Info)
       ============================== */}
 			<section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-				<Card className="text-center" variant="low">
+				<Card className="text-center">
 					<div className="font-label font-bold text-xs uppercase tracking-wider text-base-content/50">Longest Streak</div>
 					<div className="text-3xl font-headline font-black text-primary mt-2">
 						{longestStreak}
@@ -203,13 +291,13 @@ const Dashboard = ({ user }) => {
 					<div className="text-sm font-body mt-1 text-base-content/70">Days in a row</div>
 				</Card>
 
-				<Card className="text-center" variant="low">
+				<Card className="text-center">
 					<div className="font-label font-bold text-xs uppercase tracking-wider text-base-content/50">Total Entries</div>
 					<div className="text-3xl font-headline font-black text-primary mt-2">{totalEntries}</div>
 					<div className="text-sm font-body mt-1 text-base-content/70">Lifetime contributions</div>
 				</Card>
 
-				<Card className="text-center" variant="low">
+				<Card className="text-center">
 					<div className="font-label font-bold text-xs uppercase tracking-wider text-base-content/50">Level</div>
 					<div className="text-3xl font-headline font-black text-primary mt-2">Novice</div>
 					<div className="text-sm font-body mt-1 text-base-content/70">Next: Apprentice</div>

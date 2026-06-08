@@ -4,7 +4,7 @@ import Card from "../components/stitch/Card";
 const AboutPage = () => {
 	return (
 		<div className="flex flex-col w-full gap-8">
-			<Card variant="primary" padding="large" shadow="large" className="bg-primary text-white text-center">
+			<Card variant="primary" padding="large" shadow="xl" className="bg-primary text-white text-center">
 				<h1 className="text-5xl md:text-8xl font-black font-headline uppercase leading-none tracking-tighter mb-8">
 					About Locked-In
 				</h1>
@@ -14,7 +14,7 @@ const AboutPage = () => {
 			</Card>
 
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-				<Card variant="primary" className="bg-primary text-white" padding="large" shadow="large">
+				<Card variant="primary" className="bg-primary text-white" padding="large" shadow="md">
 					<h2 className="text-3xl font-headline font-black uppercase mb-4">
 						The Philosophy
 					</h2>
@@ -23,7 +23,7 @@ const AboutPage = () => {
 					</p>
 				</Card>
 
-				<Card variant="primary" className="bg-primary text-white" padding="large" shadow="large">
+				<Card variant="primary" className="bg-primary text-white" padding="large" shadow="primary-md">
 					<h2 className="text-3xl font-headline font-black uppercase mb-4">
 						Built For Developers
 					</h2>

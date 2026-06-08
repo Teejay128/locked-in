@@ -50,7 +50,7 @@ const NotFoundPage = () => {
 				{/* Primary Action Button */}
 				<Link
 					className="group relative inline-flex items-center gap-3 bg-primary text-on-primary-container font-headline font-extrabold text-xl px-8 py-4 rounded-lg border-4 border-primary neo-shadow active-press transition-transform"
-					to={user ? "/app/dashboard" : "/"}
+					to={user ? "/dashboard" : "/"}
 				>
 					LOCK BACK IN
 					<span className="material-symbols-outlined transition-transform group-hover:translate-x-1">

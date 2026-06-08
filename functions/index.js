@@ -1,50 +1,25 @@
 const admin = require("firebase-admin");
 const functions = require("firebase-functions/v1");
 const logger = require("firebase-functions/logger");
+const { defineSecret } = require("firebase-functions/params");
+const { genkit } = require("genkit");
+const { googleAI } = require("@genkit-ai/google-genai");
 
 const { FieldValue } = require("firebase-admin/firestore");
 const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
-const { defineSecret } = require("firebase-functions/params");
 
-const { genkit } = require("genkit");
-const { googleAI } = require("@genkit-ai/google-genai");
+const { getYesterdayDate, aggregator } = require("./services/utils");
+const { fetchNaijaTrendingContext } = require("./services/trends");
+const { sendDiscordMessage } = require("./services/dispersal");
+const { synthesizeTrends } = require("./services/genkit");
+
+const geminiApiKey = defineSecret("GEMINI_API_KEY");
 
 admin.initializeApp();
 const db = admin.firestore();
-const geminiApiKey = defineSecret("GEMINI_API_KEY");
 
-function getYesterdayDate(dateString) {
-	const date = new Date(dateString);
-	date.setDate(date.getDate() - 1);
-	return date.toISOString().split("T")[0];
-}
-
-async function sendDiscordMessage(text) {
-	const webhookUrl = "https://discordapp.com/api/webhooks/1492646543533146327/tHp7C0RAmDDpfWe_0hyy7NrkzKUUQCkpvXOY1R6JQH4K_iRH_7xUWlpvCicgmsK9yj6N"
-
-	if(!webhookUrl) {
-		console.error("Missing Discord Webhook URL")
-		return
-	}
-
-	try {
-		const response = await fetch(webhookUrl, {
-			method: "POST",
-			headers: { "Content-Type": "application/json"},
-			body: JSON.stringify({
-				content: text,
-			})
-		})
-
-		if(!response.ok) {
-			console.error("Failed to send message to Discord")
-		}
-	} catch (error) {
-		console.error("Error sending message to Discord:", error)
-	}
-}
-
+// user functions
 exports.onEntryCreated = onDocumentCreated(
 	"users/{userId}/entries/{entryId}",
 	async (event) => {
@@ -117,21 +92,15 @@ exports.onUserSignUp = functions.auth.user().onCreate(async (user) => {
 	}
 });
 
+// quote functions
 exports.generateDailyQuote = onSchedule(
 	{ schedule: "every day 07:00", secrets: [geminiApiKey] },
 	async (event) => {
 		try {
-			// FETCH CONTEXT
-			let quoteContext = "No additional context today. SKIP.";
-			try {
-				// fetch context from external source
-			} catch (e) {
-				console.log("Failed to fetch context");
-			}
 			const recentQuotesSnapshot = await db
 				.collection("quotes")
 				.orderBy("createdAt", "desc")
-				.limit(5)
+				.limit(3)
 				.get();
 
 			const recentQuotes = recentQuotesSnapshot.docs
@@ -139,26 +108,7 @@ exports.generateDailyQuote = onSchedule(
 				.join(" | ");
 
 			// GENERATE QUOTE
-			const ai = genkit({
-				plugins: [googleAI({ apiKey: geminiApiKey.value() })],
-				model: googleAI.model("gemini-2.0-flash-lite"),
-			});
-
-			const prompt = `
-			You are an inspiring mentor for software developers who are trying to be consistent. Generate ONE short, punch motivational quote for today. Bonus points if you include a twist in it.
-
-			HERE'S SOME CONTEXT FOR YOU TO USE:
-			${quoteContext}
-			
-			RULES:
-			- Keep it under 2 sentences.
-      - Make it relevant to building software, coding, or technology.
-      - DO NOT repeat similar concepts to these recent quotes: [${recentQuotes}]
-      - Do not include quotation marks in the output.
-      - Subtly weave the provided context into the motivation if appropriate, but keep the focus on developer productivity.
-		`;
-
-			const { text } = await ai.generate(prompt);
+			const motivationalQuote = generateQuote(recentQuotes);
 
 			// SAVE TO FIRESTORE
 			const today = new Date().toISOString().split("T")[0];
@@ -166,15 +116,113 @@ exports.generateDailyQuote = onSchedule(
 				quote: text,
 				createdAt: FieldValue.serverTimestamp(),
 			};
-			
+
 			await db.collection("quotes").doc(today).set(newQuote);
-			
+
 			// Send to discord
-			await sendDiscordMessage(text)
+			await sendDiscordMessage(text);
 			console.log(`Successfully generated quote for ${today}: ${text}`);
 			return null;
 		} catch (error) {
 			console.error("Error generating daily quote:", error);
+			return null;
+		}
+	},
+);
+
+exports.scrapeDailyTrends = onSchedule(
+	{ schedule: "0 23 * * *", timeZone: "Africa/Lagos" },
+	async (event) => {
+		try {
+			const trends = await fetchNaijaTrendingContext(
+				"https://trends24.in/nigeria/",
+			);
+
+			// Save trends with today's date
+			const today = new Date().toISOString().split("T")[0];
+			const trendsDoc = {
+				date: today,
+				trends: trends,
+				createdAt: admin.firestore.FieldValue.serverTimestamp(),
+			};
+
+			await db.collection("trends").doc(today).set(trendsDoc);
+			logger.info(`Successfully scraped and saved trends for ${today}`);
+			return null;
+		} catch (error) {
+			logger.error("Error scraping daily trends:", error);
+			return null;
+		}
+	},
+);
+
+exports.synthesizeWeeklyTrends = onSchedule(
+	{
+		schedule: "30 23 * * 6",
+		timeZone: "Africa/Lagos",
+		secrets: [geminiApiKey],
+	},
+	async (event) => {
+		try {
+			const today = new Date();
+			const endDate = today.toISOString().split("T")[0];
+			const weekAgo = new Date(today);
+			weekAgo.setDate(today.getDate() - 6);
+			const startDate = weekAgo.toISOString().split("T")[0];
+
+			const trendsSnapshot = await db
+				.collection("trends")
+				.where("date", ">=", startDate)
+				.where("date", "<=", endDate)
+				.orderBy("date")
+				.get();
+
+			const weeklyTrends = trendsSnapshot.docs.map((doc) => doc.data());
+
+			if (weeklyTrends.length === 0) {
+				logger.warn(
+					"No trend entries found for the past 7 days. Skipping weekly synthesis.",
+				);
+				return null;
+			}
+
+			const aggregatedWeeklyTrends = aggregator(weeklyTrends);
+			const ai = genkit({
+				plugins: [googleAI({ apiKey: geminiApiKey.value() })],
+			});
+			const aiModel = googleAI.model("gemini-2.5-flash-lite");
+			const trendSummaries = await synthesizeTrends(
+				aggregatedWeeklyTrends,
+				ai,
+				aiModel,
+			);
+
+			const summaryDocName = today.toLocaleDateString("en-US", {
+				weekday: "long",
+				month: "long",
+				day: "numeric",
+			});
+
+			await db
+				.collection("trends")
+				.doc(endDate)
+				.collection("summaries")
+				.doc(summaryDocName)
+				.set({
+					date: endDate,
+					displayDate: summaryDocName,
+					startDate,
+					endDate,
+					trendSummaries,
+					createdAt: admin.firestore.FieldValue.serverTimestamp(),
+				});
+
+			logger.info(
+				`Successfully synthesized weekly trends for ${startDate} to ${endDate}`,
+			);
+			return null;
+		} catch (error) {
+			logger.error("Error synthesizing weekly trends:", error);
 			return null;
 		}
 	},

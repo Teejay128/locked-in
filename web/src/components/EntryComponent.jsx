@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import Card from "./stitch/Card";
+import PopButton from "./stitch/PopButton";
 
 const EntryComponent = ({
 	entry,
@@ -6,8 +8,12 @@ const EntryComponent = ({
 	isError,
 	errorMessage,
 	onSubmit,
+	content: externalContent,
+	setContent: externalSetContent,
 }) => {
-	const [content, setContent] = useState("");
+	const [localContent, localSetContent] = useState("");
+	const content = externalContent !== undefined ? externalContent : localContent;
+	const setContent = externalSetContent !== undefined ? externalSetContent : localSetContent;
 	const [liveDate, setLiveDate] = useState(new Date());
 
 	useEffect(() => {
@@ -55,53 +61,14 @@ const EntryComponent = ({
 			: "border-base-200";
 
 	return (
-		<div
-			className={`card bg-base-100 shadow-xl border w-full mb-8 transition-all duration-500 ${borderStyles}`}
-		>
-			<div className="card-body p-6">
-				{/* ==============================
-            HEADER: Title, Date, and ID
-        ============================== */}
-				<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4 border-b border-base-200 pb-4">
-					<div className="flex items-center gap-2">
-						<span className="text-xl">
-							{isErrorState
-								? "⚠️"
-								: isCreating
-									? "✍️"
-									: isLoading
-										? "⏳"
-										: "📝"}
-						</span>
-						<h2
-							className={`card-title text-lg m-0 ${isErrorState ? "text-error" : ""}`}
-						>
-							{isErrorState
-								? "Save Failed"
-								: isCreating
-									? "New Journal Entry"
-									: isLoading
-										? "Saving Entry..."
-										: "Journal Entry"}
-						</h2>
-					</div>
-					<div className="text-left sm:text-right">
-						<div className="text-sm font-semibold text-base-content/80">
-							{isLoading ? "pending..." : displayDate}
-						</div>
-						<div className="text-xs text-base-content/40 font-mono mt-1 transition-all">
-							ID: {isViewing ? entry.entryId : "pending..."}
-						</div>
-					</div>
-				</div>
-
-				{/* ==============================
+		<div className="w-full flex flex-col gap-4 mt-2">
+			{/* ==============================
             CONTENT AREA
         ============================== */}
 				{isCreating || isErrorState ? (
 					<div className="mb-4">
 						<textarea
-							className={`textarea textarea-bordered w-full text-base bg-base-200/30 min-h-[120px] transition-colors focus:bg-base-100 ${isErrorState ? "border-error/50 focus:border-error" : ""}`}
+							className={`neo-input w-full text-base min-h-[120px] resize-none ${isErrorState ? "!border-error focus:!border-error" : ""}`}
 							placeholder="What are you working on today? Be as raw or detailed as you want..."
 							value={content}
 							onChange={(e) => setContent(e.target.value)}
@@ -135,7 +102,7 @@ const EntryComponent = ({
 
 							{/* Right Side: The Button */}
 							<button
-								className={`btn btn-sm sm:btn-md ${isErrorState ? "btn-error text-error-content" : "btn-primary"} transition-all`}
+								className={`${isErrorState ? "btn-danger" : "btn-dark"} neo-btn text-xs py-2 px-4`}
 								disabled={!content.trim() || isLoading}
 								onClick={() => onSubmit(content)}
 							>
@@ -147,13 +114,15 @@ const EntryComponent = ({
 						</div>
 					</div>
 				) : (
-					<div
-						className={`bg-base-200/50 p-4 rounded-lg border border-base-300 min-h-[100px] mb-8 ${isLoading ? "animate-pulse" : ""}`}
+					<Card
+						variant="naked"
+						padding="small"
+						className={`min-h-[100px] mb-8 bg-surface-container-low/30 border-primary/20 ${isLoading ? "animate-pulse" : ""}`}
 					>
-						<p className="whitespace-pre-wrap text-base-content/90">
+						<p className="whitespace-pre-wrap text-on-surface/90 font-body">
 							{isViewing ? entry.content : content}
 						</p>
-					</div>
+					</Card>
 				)}
 
 				{/* ==============================
@@ -171,129 +140,132 @@ const EntryComponent = ({
 
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 						{/* --- Twitter / X Card --- */}
-						<div
-							className={`card bg-base-200 shadow-sm border ${isErrorState ? "border-error/20 opacity-70" : "border-base-300"}`}
+						<Card
+							variant="naked"
+							padding="small"
+							className={`flex flex-col h-full ${isErrorState ? "opacity-70" : ""}`}
 						>
-							<div className="card-body p-5 flex flex-col h-full">
-								<h4 className="card-title text-sm opacity-70 flex items-center gap-2 border-b border-base-300 pb-2">
-									<svg
-										xmlns="http://www.w3.org/2000/svg"
-										width="14"
-										height="14"
-										fill="currentColor"
-										viewBox="0 0 16 16"
+							<h4 className="font-headline font-bold text-sm opacity-70 flex items-center gap-2 border-b border-primary/20 pb-2 text-primary uppercase">
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									width="14"
+									height="14"
+									fill="currentColor"
+									viewBox="0 0 16 16"
+								>
+									<path d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.07-4.425 5.07H.316l5.733-6.57L0 .75h5.063l3.495 4.633L12.601.75Zm-.86 13.028h1.36L4.323 2.145H2.865l8.875 11.633Z" />
+								</svg>
+								X (Twitter)
+							</h4>
+
+							<div className="my-3 flex-grow text-sm text-on-surface/80">
+								{isLoading ? (
+									<div className="space-y-2 mt-2">
+										<div className="skeleton h-4 w-full"></div>
+										<div className="skeleton h-4 w-5/6"></div>
+										<div className="skeleton h-4 w-4/6"></div>
+									</div>
+								) : (
+									<p
+										className={`whitespace-pre-wrap ${(isCreating || isErrorState) && !content ? "italic opacity-50" : ""}`}
 									>
-										<path d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.07-4.425 5.07H.316l5.733-6.57L0 .75h5.063l3.495 4.633L12.601.75Zm-.86 13.028h1.36L4.323 2.145H2.865l8.875 11.633Z" />
-									</svg>
-									X (Twitter)
-								</h4>
-
-								<div className="my-3 flex-grow text-sm text-base-content/80">
-									{isLoading ? (
-										<div className="space-y-2 mt-2">
-											<div className="skeleton h-4 w-full"></div>
-											<div className="skeleton h-4 w-5/6"></div>
-											<div className="skeleton h-4 w-4/6"></div>
-										</div>
-									) : (
-										<p
-											className={`whitespace-pre-wrap ${(isCreating || isErrorState) && !content ? "italic opacity-50" : ""}`}
-										>
-											{isViewing
-												? entry.social.twitter.text
-												: previewTwitter}
-										</p>
-									)}
-								</div>
-
-								<div className="card-actions justify-end mt-auto pt-2">
-									{isViewing ? (
-										<a
-											href={entry.social.twitter.link}
-											target="_blank"
-											rel="noopener noreferrer"
-											className="btn btn-sm btn-neutral text-neutral-content w-full sm:w-auto"
-										>
-											Post to X
-										</a>
-									) : (
-										<button className="btn btn-sm btn-disabled w-full sm:w-auto">
-											{isLoading && (
-												<span className="loading loading-spinner loading-xs"></span>
-											)}
-											{isLoading
-												? "Generating..."
-												: "Post to X"}
-										</button>
-									)}
-								</div>
+										{isViewing
+											? entry.social.twitter.text
+											: previewTwitter}
+									</p>
+								)}
 							</div>
-						</div>
+
+							<div className="justify-end mt-auto pt-2 flex">
+								{isViewing ? (
+									<a
+										href={entry.social.twitter.link}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="w-full sm:w-auto"
+									>
+										<PopButton className="text-xs w-full sm:w-auto" shadow="sm">
+											Post to X
+										</PopButton>
+									</a>
+								) : (
+									<PopButton className="text-xs opacity-50 cursor-not-allowed w-full sm:w-auto" disabled shadow="sm">
+										{isLoading && (
+											<span className="loading loading-spinner loading-xs"></span>
+										)}
+										{isLoading
+											? "Generating..."
+											: "Post to X"}
+									</PopButton>
+								)}
+							</div>
+						</Card>
 
 						{/* --- LinkedIn Card --- */}
-						<div
-							className={`card bg-base-200 shadow-sm border ${isErrorState ? "border-error/20 opacity-70" : "border-base-300"}`}
+						<Card
+							variant="naked"
+							padding="small"
+							className={`flex flex-col h-full ${isErrorState ? "opacity-70" : ""}`}
 						>
-							<div className="card-body p-5 flex flex-col h-full">
-								<h4 className="card-title text-sm opacity-70 flex items-center gap-2 border-b border-base-300 pb-2">
-									<svg
-										xmlns="http://www.w3.org/2000/svg"
-										width="14"
-										height="14"
-										fill="currentColor"
-										viewBox="0 0 16 16"
+							<h4 className="font-headline font-bold text-sm opacity-70 flex items-center gap-2 border-b border-primary/20 pb-2 text-primary uppercase">
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									width="14"
+									height="14"
+									fill="currentColor"
+									viewBox="0 0 16 16"
+								>
+									<path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854V1.146zm4.943 12.248V6.169H2.542v7.225h2.401zm-1.2-8.212c.837 0 1.358-.554 1.358-1.248-.015-.709-.52-1.248-1.342-1.248-.822 0-1.359.54-1.359 1.248 0 .694.521 1.248 1.327 1.248h.016zm4.908 8.212V9.359c0-.216.016-.432.08-.586.173-.431.568-.878 1.232-.878.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252-1.274 0-1.845.7-2.165 1.193v.025h-.016a5.54 5.54 0 0 1 .016-.025V6.169h-2.4c.03.678 0 7.225 0 7.225h2.4z" />
+								</svg>
+								LinkedIn
+							</h4>
+
+							<div className="my-3 flex-grow text-sm text-on-surface/80">
+								{isLoading ? (
+									<div className="space-y-2 mt-2">
+										<div className="skeleton h-4 w-full"></div>
+										<div className="skeleton h-4 w-11/12"></div>
+										<div className="skeleton h-4 w-4/6"></div>
+									</div>
+								) : (
+									<p
+										className={`whitespace-pre-wrap ${(isCreating || isErrorState) && !content ? "italic opacity-50" : ""}`}
 									>
-										<path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854V1.146zm4.943 12.248V6.169H2.542v7.225h2.401zm-1.2-8.212c.837 0 1.358-.554 1.358-1.248-.015-.709-.52-1.248-1.342-1.248-.822 0-1.359.54-1.359 1.248 0 .694.521 1.248 1.327 1.248h.016zm4.908 8.212V9.359c0-.216.016-.432.08-.586.173-.431.568-.878 1.232-.878.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252-1.274 0-1.845.7-2.165 1.193v.025h-.016a5.54 5.54 0 0 1 .016-.025V6.169h-2.4c.03.678 0 7.225 0 7.225h2.4z" />
-									</svg>
-									LinkedIn
-								</h4>
-
-								<div className="my-3 flex-grow text-sm text-base-content/80">
-									{isLoading ? (
-										<div className="space-y-2 mt-2">
-											<div className="skeleton h-4 w-full"></div>
-											<div className="skeleton h-4 w-11/12"></div>
-											<div className="skeleton h-4 w-4/6"></div>
-										</div>
-									) : (
-										<p
-											className={`whitespace-pre-wrap ${(isCreating || isErrorState) && !content ? "italic opacity-50" : ""}`}
-										>
-											{isViewing
-												? entry.social.linkedin.text
-												: previewLinkedIn}
-										</p>
-									)}
-								</div>
-
-								<div className="card-actions justify-end mt-auto pt-2">
-									{isViewing ? (
-										<a
-											href={entry.social.linkedin.link}
-											target="_blank"
-											rel="noopener noreferrer"
-											className="btn btn-sm btn-primary w-full sm:w-auto"
-										>
-											Post to LinkedIn
-										</a>
-									) : (
-										<button className="btn btn-sm btn-disabled w-full sm:w-auto">
-											{isLoading && (
-												<span className="loading loading-spinner loading-xs"></span>
-											)}
-											{isLoading
-												? "Generating..."
-												: "Post to LinkedIn"}
-										</button>
-									)}
-								</div>
+										{isViewing
+											? entry.social.linkedin.text
+											: previewLinkedIn}
+									</p>
+								)}
 							</div>
-						</div>
+
+							<div className="justify-end mt-auto pt-2 flex">
+								{isViewing ? (
+									<a
+										href={entry.social.linkedin.link}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="w-full sm:w-auto"
+									>
+										<PopButton className="text-xs w-full sm:w-auto" shadow="sm">
+											Post to LinkedIn
+										</PopButton>
+									</a>
+								) : (
+									<PopButton className="text-xs opacity-50 cursor-not-allowed w-full sm:w-auto" disabled shadow="sm">
+										{isLoading && (
+											<span className="loading loading-spinner loading-xs"></span>
+										)}
+										{isLoading
+											? "Generating..."
+											: "Post to LinkedIn"}
+									</PopButton>
+								)}
+							</div>
+						</Card>
 					</div>
 				</div>
 			</div>
-		</div>
-	);
+		);
 };
 
 export default EntryComponent;

@@ -8,13 +8,12 @@
   --color-secondary-container: #d4d4d5;
   --color-surface-dim: #d3dbe2;
   --color-on-secondary-fixed-variant: #3a3c3d;
-  --color-surface: #f5faff;
-  --color-tertiary: #3b3b3b;
+  --color-surface: #ebf0f5;
   --color-inverse-surface: #293137;
   --color-on-tertiary-fixed-variant: #e2e2e2;
   --color-outline: #777777;
   --color-tertiary-fixed: #5e5e5e;
-  --color-surface-bright: #f5faff;
+  --color-surface-bright: #ebf0f5;
   --color-tertiary-fixed-dim: #474747;
   --color-outline-variant: #c6c6c6;
   --color-on-surface: #151d22;
@@ -29,7 +28,7 @@
   --color-secondary: #5d5e60;
   --color-on-primary-fixed-variant: #e2e2e2;
   --color-surface-tint: #5e5e5e;
-  --color-background: #f5faff;
+  --color-background: #ebf0f5;
   --color-on-secondary-fixed: #1a1c1d;
   --color-error: #ba1a1a;
   --color-on-tertiary: #e2e2e2;
@@ -72,7 +71,136 @@ body {
     "GRAD" 0,
     "opsz" 24;
 }
-/* Custom Neo-Brutalist Shadow */
+/* Custom Neo-Brutalist Shadow Levels */
+
+/* Thickness variations (Solid Black) */
+.neo-shadow-xs {
+  box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, 1);
+}
+.neo-shadow-sm {
+  box-shadow: 4px 4px 0px 0px rgba(0, 0, 0, 1);
+}
+.neo-shadow-md {
+  box-shadow: 8px 8px 0px 0px rgba(0, 0, 0, 1);
+}
+.neo-shadow-lg {
+  box-shadow: 12px 12px 0px 0px rgba(0, 0, 0, 1);
+}
+.neo-shadow-xl {
+  box-shadow: 16px 16px 0px 0px rgba(0, 0, 0, 1);
+}
+.neo-shadow-2xl {
+  box-shadow: 24px 24px 0px 0px rgba(0, 0, 0, 1);
+}
+
+/* Darkness variations (80% opacity - soft-dark) */
+.neo-shadow-dark-xs {
+  box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, 0.8);
+}
+.neo-shadow-dark-sm {
+  box-shadow: 4px 4px 0px 0px rgba(0, 0, 0, 0.8);
+}
+.neo-shadow-dark-md {
+  box-shadow: 8px 8px 0px 0px rgba(0, 0, 0, 0.8);
+}
+.neo-shadow-dark-lg {
+  box-shadow: 12px 12px 0px 0px rgba(0, 0, 0, 0.8);
+}
+.neo-shadow-dark-xl {
+  box-shadow: 16px 16px 0px 0px rgba(0, 0, 0, 0.8);
+}
+
+/* Dim variations (60% opacity - medium-dark) */
+.neo-shadow-dim-xs {
+  box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, 0.6);
+}
+.neo-shadow-dim-sm {
+  box-shadow: 4px 4px 0px 0px rgba(0, 0, 0, 0.6);
+}
+.neo-shadow-dim-md {
+  box-shadow: 8px 8px 0px 0px rgba(0, 0, 0, 0.6);
+}
+.neo-shadow-dim-lg {
+  box-shadow: 12px 12px 0px 0px rgba(0, 0, 0, 0.6);
+}
+.neo-shadow-dim-xl {
+  box-shadow: 16px 16px 0px 0px rgba(0, 0, 0, 0.6);
+}
+
+/* Subtle variations (40% opacity - light shadow) */
+.neo-shadow-subtle-xs {
+  box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, 0.4);
+}
+.neo-shadow-subtle-sm {
+  box-shadow: 4px 4px 0px 0px rgba(0, 0, 0, 0.4);
+}
+.neo-shadow-subtle-md {
+  box-shadow: 8px 8px 0px 0px rgba(0, 0, 0, 0.4);
+}
+.neo-shadow-subtle-lg {
+  box-shadow: 12px 12px 0px 0px rgba(0, 0, 0, 0.4);
+}
+.neo-shadow-subtle-xl {
+  box-shadow: 16px 16px 0px 0px rgba(0, 0, 0, 0.4);
+}
+
+/* Theme color variations */
+.neo-shadow-primary-xs {
+  box-shadow: 2px 2px 0px 0px var(--color-primary, #000000);
+}
+.neo-shadow-primary-sm {
+  box-shadow: 4px 4px 0px 0px var(--color-primary, #000000);
+}
+.neo-shadow-primary-md {
+  box-shadow: 8px 8px 0px 0px var(--color-primary, #000000);
+}
+.neo-shadow-primary-lg {
+  box-shadow: 12px 12px 0px 0px var(--color-primary, #000000);
+}
+
+.neo-shadow-secondary-xs {
+  box-shadow: 2px 2px 0px 0px var(--color-secondary, #5d5e60);
+}
+.neo-shadow-secondary-sm {
+  box-shadow: 4px 4px 0px 0px var(--color-secondary, #5d5e60);
+}
+.neo-shadow-secondary-md {
+  box-shadow: 8px 8px 0px 0px var(--color-secondary, #5d5e60);
+}
+
+.neo-shadow-error-xs {
+  box-shadow: 2px 2px 0px 0px var(--color-error, #ba1a1a);
+}
+.neo-shadow-error-sm {
+  box-shadow: 4px 4px 0px 0px var(--color-error, #ba1a1a);
+}
+.neo-shadow-error-md {
+  box-shadow: 8px 8px 0px 0px var(--color-error, #ba1a1a);
+}
+
+/* Active presses */
+.active-press-xs:active {
+  transform: translate(1px, 1px);
+  box-shadow: 0px 0px 0px 0px rgba(0, 0, 0, 0.2);
+}
+.active-press-sm:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0px 0px 0px 0px rgba(0, 0, 0, 0.2);
+}
+.active-press-md:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0px 0px 0px 0px rgba(0, 0, 0, 0.2);
+}
+.active-press-lg:active {
+  transform: translate(6px, 6px);
+  box-shadow: 0px 0px 0px 0px rgba(0, 0, 0, 0.2);
+}
+.active-press-xl:active {
+  transform: translate(8px, 8px);
+  box-shadow: 0px 0px 0px 0px rgba(0, 0, 0, 0.2);
+}
+
+/* Standard legacy alias for backwards compatibility */
 .neo-shadow {
   box-shadow: 4px 4px 0px 0px rgba(0, 0, 0, 1);
 }
@@ -82,4 +210,180 @@ body {
 .active-press:active {
   transform: translate(2px, 2px);
   box-shadow: 0px 0px 0px 0px rgba(0, 0, 0, 1);
+}
+
+/* Neo-brutalist Custom Input Styles */
+.neo-input {
+  border: 2px solid var(--color-primary, #000000);
+  background-color: var(--color-background, #ebf0f5);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  font-family: var(--font-label, inherit);
+  transition: all 0.2s ease-in-out;
+  outline: none;
+}
+
+.neo-input:focus {
+  background-color: var(--color-surface-container-lowest, #ffffff);
+  transform: translate(-4px, -4px);
+  box-shadow: 4px 4px 0px 0px #000000;
+}
+
+.neo-input-disabled {
+  border: none;
+  background-color: transparent;
+  padding: 0.75rem 1rem;
+  font-family: var(--font-label, inherit);
+  transition: all 0.2s ease-in-out;
+  outline: none;
+}
+
+.neo-input-disabled:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 0.75rem;
+}
+
+/* Custom Button Styles */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: var(--font-headline, inherit);
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 0.875rem;
+  letter-spacing: 0.05em;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  user-select: none;
+  transition: all 150ms ease-in-out;
+  background-color: var(--color-surface-container-lowest, #ffffff);
+  color: var(--color-primary, #000000);
+  border: 2px solid var(--color-primary, #000000);
+}
+
+.btn:hover {
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
+.btn:active {
+  background-color: rgba(0, 0, 0, 0.18);
+  transform: scale(0.98);
+}
+
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: var(--font-headline, inherit);
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 0.875rem;
+  letter-spacing: 0.05em;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  user-select: none;
+  transition: all 150ms ease-in-out;
+  background-color: var(--color-surface-container-lowest, #ffffff);
+  color: var(--color-error, #ba1a1a);
+  border: 2px solid transparent;
+}
+
+.btn-danger:hover {
+  background-color: rgba(186, 26, 26, 0.08);
+}
+
+.btn-danger:active {
+  background-color: rgba(186, 26, 26, 0.18);
+  transform: scale(0.98);
+}
+
+.btn-dark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: var(--font-headline, inherit);
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 0.875rem;
+  letter-spacing: 0.05em;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  user-select: none;
+  transition: all 150ms ease-in-out;
+  background-color: var(--color-primary, #000000);
+  color: var(--color-surface-container-lowest, #ffffff);
+  border: 2px solid var(--color-primary, #000000);
+}
+
+.btn-dark:hover {
+  background-color: #262626;
+}
+
+.btn-dark:active {
+  background-color: #404040;
+  transform: scale(0.98);
+}
+
+.btn-light-blue {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: var(--font-headline, inherit);
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 0.875rem;
+  letter-spacing: 0.05em;
+  padding: 0.375rem 2rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  user-select: none;
+  transition: all 150ms ease-in-out;
+  background-color: var(--color-surface-container-low, #edf5fc);
+  color: var(--color-primary, #000000);
+  border: none;
+}
+
+.btn-light-blue:hover {
+  background-color: var(--color-surface-container, #e7eff6);
+}
+
+.btn-light-blue:active {
+  background-color: var(--color-surface-container-high, #e1e9f0);
+  transform: scale(0.98);
+}
+
+/* Neo-brutalist elevated button modifier */
+.neo-btn {
+  transform: translate(0, 0);
+  box-shadow: 0px 0px 0px 0px #000000;
+}
+
+.neo-btn:hover {
+  transform: translate(-4px, -4px);
+  box-shadow: 4px 4px 0px 0px #000000;
+}
+
+.btn.neo-btn:hover {
+  background-color: var(--color-surface-container-lowest, #ffffff);
+}
+
+.btn-dark.neo-btn:hover {
+  background-color: var(--color-primary, #000000);
+}
+
+.btn-danger.neo-btn:hover {
+  background-color: var(--color-surface-container-lowest, #ffffff);
+}
+
+.neo-btn:active {
+  transform: translate(0, 0) !important;
+  box-shadow: 0px 0px 0px 0px #000000 !important;
 }
