@@ -2,7 +2,7 @@ const { admin } = require("../config/firebase");
 const AIService = require("../services/aiService");
 
 exports.createEntry = async (req, res) => {
-	const { content, imageUrls = [] } = req.body;
+	const { content, imageUrls = [], date, tags = [] } = req.body;
 
 	if (!content) {
 		return res
@@ -15,9 +15,14 @@ exports.createEntry = async (req, res) => {
 		const user = req.user;
 
 		const socialPackage = await AIService.generateSocialPackage(content);
+		const entryDate = date || requestTime.toISOString().split("T")[0];
 		const saveResult = await user.ref.collection("entries").add({
 			content,
 			imageUrls,
+			date: entryDate,
+			tags: Array.isArray(tags)
+				? tags.map((t) => String(t).trim()).filter(Boolean)
+				: [],
 			source: user.authSource || "web_app",
 			social: socialPackage,
 			createdAt: admin.firestore.FieldValue.serverTimestamp(),
