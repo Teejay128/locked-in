@@ -1,11 +1,14 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { auth, googleProvider } from "../firebase";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signInWithPopup } from "firebase/auth";
+import {
+	signInWithEmailAndPassword,
+	createUserWithEmailAndPassword,
+	signInWithPopup,
+} from "firebase/auth";
 
 const LockIn = ({ defaultIsRegister = false }) => {
 	const [isRegister, setIsRegister] = useState(defaultIsRegister);
-	const [name, setName] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [error, setError] = useState(null);
@@ -24,10 +27,7 @@ const LockIn = ({ defaultIsRegister = false }) => {
 
 		try {
 			if (isRegister) {
-				const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-				if (name) {
-					await updateProfile(userCredential.user, { displayName: name });
-				}
+				await createUserWithEmailAndPassword(auth, email, password);
 				navigate("/dashboard");
 			} else {
 				await signInWithEmailAndPassword(auth, email, password);
@@ -96,36 +96,17 @@ const LockIn = ({ defaultIsRegister = false }) => {
 								{error}
 							</div>
 						)}
-						{/* Name Input (Only on Register) */}
-						{isRegister && (
-							<div className="relative flex flex-col group focus-within:[&>label]:-translate-y-5 focus-within:[&>label]:scale-90 focus-within:[&>label]:bg-primary focus-within:[&>label]:text-surface-container-lowest focus-within:[&>label]:px-1">
-								<label
-									className="absolute left-3 top-3 font-label font-bold text-sm uppercase transition-all duration-200 pointer-events-none text-on-surface-variant origin-left"
-									htmlFor="name"
-								>
-									Full Name
-								</label>
-								<input
-									className="neo-input w-full pt-6 pb-2 px-3 placeholder:text-transparent focus:placeholder:text-on-surface-variant/50"
-									id="name"
-									placeholder="JOHN DOE"
-									type="text"
-									value={name}
-									onChange={(e) => setName(e.target.value)}
-								/>
-							</div>
-						)}
 
 						{/* Email Input */}
-						<div className="relative flex flex-col group focus-within:[&>label]:-translate-y-5 focus-within:[&>label]:scale-90 focus-within:[&>label]:bg-primary focus-within:[&>label]:text-surface-container-lowest focus-within:[&>label]:px-1">
+						<div className="flex flex-col gap-1.5">
 							<label
-								className="absolute left-3 top-3 font-label font-bold text-sm uppercase transition-all duration-200 pointer-events-none text-on-surface-variant origin-left"
+								className="font-label font-bold text-xs uppercase tracking-wider text-primary"
 								htmlFor="email"
 							>
 								Email Address
 							</label>
 							<input
-								className="neo-input w-full pt-6 pb-2 px-3 placeholder:text-transparent focus:placeholder:text-on-surface-variant/50"
+								className="neo-input w-full py-2.5 px-3 placeholder:text-on-surface-variant/30 text-sm"
 								id="email"
 								placeholder="REBEL@LOCKEDIN.TERMINAL"
 								type="email"
@@ -136,15 +117,15 @@ const LockIn = ({ defaultIsRegister = false }) => {
 						</div>
 
 						{/* Password Input */}
-						<div className="relative flex flex-col group focus-within:[&>label]:-translate-y-5 focus-within:[&>label]:scale-90 focus-within:[&>label]:bg-primary focus-within:[&>label]:text-surface-container-lowest focus-within:[&>label]:px-1">
+						<div className="flex flex-col gap-1.5">
 							<label
-								className="absolute left-3 top-3 font-label font-bold text-sm uppercase transition-all duration-200 pointer-events-none text-on-surface-variant origin-left"
+								className="font-label font-bold text-xs uppercase tracking-wider text-primary"
 								htmlFor="password"
 							>
 								Password
 							</label>
 							<input
-								className="neo-input w-full pt-6 pb-2 px-3 placeholder:text-transparent focus:placeholder:text-on-surface-variant/50"
+								className="neo-input w-full py-2.5 px-3 placeholder:text-on-surface-variant/30 text-sm"
 								id="password"
 								placeholder="••••••••••••"
 								type="password"
@@ -160,7 +141,13 @@ const LockIn = ({ defaultIsRegister = false }) => {
 							type="submit"
 							disabled={loading}
 						>
-							{loading ? (isRegister ? "REGISTERING..." : "SIGNING IN...") : (isRegister ? "REGISTER" : "SIGN IN")}
+							{loading
+								? isRegister
+									? "REGISTERING..."
+									: "SIGNING IN..."
+								: isRegister
+									? "REGISTER"
+									: "SIGN IN"}
 						</button>
 
 						{/* Divider */}

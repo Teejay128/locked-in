@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, onSnapshot, collection, query, where } from "firebase/firestore";
 import { db } from "../firebase";
 
 import EntryComponent from "../components/EntryComponent";
@@ -27,6 +27,22 @@ import PopButton from "../components/stitch/PopButton";
 // 	createdAt: "2026-03-19T05:15:54.949Z",
 // };
 
+const getCurrentWeekDates = () => {
+	const today = new Date();
+	const dayOfWeek = today.getDay();
+	const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+	const monday = new Date(today);
+	monday.setDate(today.getDate() - daysToMonday);
+
+	const dates = [];
+	for (let i = 0; i < 7; i++) {
+		const nextDay = new Date(monday);
+		nextDay.setDate(monday.getDate() + i);
+		dates.push(nextDay.toISOString().split("T")[0]);
+	}
+	return dates;
+};
+
 const Dashboard = ({ user }) => {
 	const [entryError, setEntryError] = useState("");
 	const [entryLoading, setEntryLoading] = useState(false);
@@ -47,6 +63,13 @@ const Dashboard = ({ user }) => {
 	const [dailyQuote, setDailyQuote] = useState(
 		"Locking in for today's motivation...",
 	);
+
+	const [profile, setProfile] = useState({
+		currentStreak: 0,
+		longestStreak: 0,
+		totalEntries: 0,
+	});
+	const [activeDays, setActiveDays] = useState(new Set());
 
 	useEffect(() => {
 		const fetchDailyQuote = async () => {
@@ -72,6 +95,54 @@ const Dashboard = ({ user }) => {
 
 		fetchDailyQuote();
 	}, []);
+
+	useEffect(() => {
+		if (!user) return;
+
+		// Listen to user profile stats
+		const userDocRef = doc(db, "users", user.uid);
+		const unsubscribeProfile = onSnapshot(userDocRef, (docSnap) => {
+			if (docSnap.exists()) {
+				const data = docSnap.data();
+				setProfile({
+					currentStreak: data.currentStreak || 0,
+					longestStreak: data.longestStreak || 0,
+					totalEntries: data.totalEntries || 0,
+				});
+			}
+		});
+
+		// Listen to current week's entries to update progress bar
+		const weekDates = getCurrentWeekDates();
+		const entriesRef = collection(db, "users", user.uid, "entries");
+		const q = query(entriesRef, where("date", "in", weekDates));
+
+		const unsubscribeEntries = onSnapshot(q, (snapshot) => {
+			const daysWithEntries = new Set();
+			snapshot.forEach((docSnap) => {
+				const entryData = docSnap.data();
+				let entryDate = entryData.date;
+				if (!entryDate && entryData.createdAt) {
+					const dateObj = typeof entryData.createdAt.toDate === "function"
+						? entryData.createdAt.toDate()
+						: new Date(entryData.createdAt);
+					entryDate = dateObj.toISOString().split("T")[0];
+				}
+				if (entryDate) {
+					const idx = weekDates.indexOf(entryDate);
+					if (idx !== -1) {
+						daysWithEntries.add(idx);
+					}
+				}
+			});
+			setActiveDays(daysWithEntries);
+		});
+
+		return () => {
+			unsubscribeProfile();
+			unsubscribeEntries();
+		};
+	}, [user]);
 
 	const handleNewEntry = async (entryContent) => {
 		setEntryLoading(true);
@@ -105,12 +176,8 @@ const Dashboard = ({ user }) => {
 		}
 	};
 
-	// Mock Data
+	// Days list
 	const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-	const activeStreakDays = 3;
-	const currentStreak = 3;
-	const longestStreak = 10;
-	const totalEntries = 50;
 
 	return (
 		<div className="w-full max-w-5xl mx-auto space-y-8">
@@ -142,7 +209,7 @@ const Dashboard = ({ user }) => {
 						<div>
 							<div className="font-label font-bold text-xs uppercase tracking-wider text-base-content/50">Current Streak</div>
 							<div className="text-3xl font-headline font-black text-primary mt-1">
-								{currentStreak} Days
+								{profile.currentStreak} {profile.currentStreak === 1 ? "Day" : "Days"}
 							</div>
 							<div className="text-sm font-body mt-1 text-base-content/70">Keep the fire burning!</div>
 						</div>
@@ -170,26 +237,27 @@ const Dashboard = ({ user }) => {
 						This Week
 					</h2>
 					<div className="flex justify-between items-center mt-2">
-						{weekDays.map((day, index) => (
-							<div
-								key={day}
-								className="flex flex-col items-center gap-2"
-							>
+						{weekDays.map((day, index) => {
+							const hasEntry = activeDays.has(index);
+							return (
 								<div
-									className={`w-10 h-10 rounded-full flex items-center justify-center font-headline font-black border-2 border-primary transition-all
+									key={day}
+									className="flex flex-col items-center gap-2"
+								>
+									<div
+										className={`w-10 h-10 rounded-full flex items-center justify-center font-headline font-black border-2 border-primary transition-all
                       ${
-							index < activeStreakDays
+							hasEntry
 								? "bg-primary text-surface-container-lowest shadow-[2px_2px_0px_0px_#000000] scale-110"
 								: "bg-surface-container-low text-primary/40"
 						}`}
-								>
-									{index < activeStreakDays
-										? "✓"
-										: day.charAt(0)}
+									>
+										{hasEntry ? "✓" : day.charAt(0)}
+									</div>
+									<span className="text-xs font-label font-bold">{day}</span>
 								</div>
-								<span className="text-xs font-label font-bold">{day}</span>
-							</div>
-						))}
+							);
+						})}
 					</div>
 				</Card>
 			</section>
@@ -286,21 +354,25 @@ const Dashboard = ({ user }) => {
 				<Card className="text-center">
 					<div className="font-label font-bold text-xs uppercase tracking-wider text-base-content/50">Longest Streak</div>
 					<div className="text-3xl font-headline font-black text-primary mt-2">
-						{longestStreak}
+						{profile.longestStreak}
 					</div>
-					<div className="text-sm font-body mt-1 text-base-content/70">Days in a row</div>
+					<div className="text-sm font-body mt-1 text-base-content/70">{profile.longestStreak === 1 ? "Day" : "Days"} in a row</div>
 				</Card>
 
 				<Card className="text-center">
 					<div className="font-label font-bold text-xs uppercase tracking-wider text-base-content/50">Total Entries</div>
-					<div className="text-3xl font-headline font-black text-primary mt-2">{totalEntries}</div>
-					<div className="text-sm font-body mt-1 text-base-content/70">Lifetime contributions</div>
+					<div className="text-3xl font-headline font-black text-primary mt-2">{profile.totalEntries}</div>
+					<div className="text-sm font-body mt-1 text-base-content/70">{profile.totalEntries === 1 ? "Contribution" : "Contributions"}</div>
 				</Card>
 
 				<Card className="text-center">
 					<div className="font-label font-bold text-xs uppercase tracking-wider text-base-content/50">Level</div>
-					<div className="text-3xl font-headline font-black text-primary mt-2">Novice</div>
-					<div className="text-sm font-body mt-1 text-base-content/70">Next: Apprentice</div>
+					<div className="text-3xl font-headline font-black text-primary mt-2">
+						{profile.totalEntries >= 50 ? "Apprentice" : "Novice"}
+					</div>
+					<div className="text-sm font-body mt-1 text-base-content/70">
+						{profile.totalEntries >= 50 ? "Next: Expert" : "Next: Apprentice"}
+					</div>
 				</Card>
 			</section>
 		</div>

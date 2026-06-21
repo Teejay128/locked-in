@@ -43,8 +43,19 @@ const RegenerateIcon = () => (
 
 const ProfileSettings = () => {
 	const [user, setUser] = useState(null);
+	const [userDocData, setUserDocData] = useState(null);
+	const [fullName, setFullName] = useState("");
 	const [username, setUsername] = useState("");
 	const [bio, setBio] = useState("");
+	const [location, setLocation] = useState("");
+	const [company, setCompany] = useState("");
+	const [skills, setSkills] = useState("");
+	const [links, setLinks] = useState({
+		github: "",
+		linkedin: "",
+		twitter: "",
+		portfolio: "",
+	});
 	const [apiKey, setApiKey] = useState("");
 
 	// States for UI feedback
@@ -54,6 +65,8 @@ const ProfileSettings = () => {
 	const [error, setError] = useState(null);
 	const [successMsg, setSuccessMsg] = useState(""); // Replaces alert()
 	const [copied, setCopied] = useState(false);
+	const [isEditingPublic, setIsEditingPublic] = useState(false);
+	const [isEditingDev, setIsEditingDev] = useState(false);
 
 	useEffect(() => {
 		const fetchUserData = async () => {
@@ -65,9 +78,20 @@ const ProfileSettings = () => {
 
 					if (userDocSnap.exists()) {
 						const userData = userDocSnap.data();
-						setUser(userData);
+						setUserDocData(userData);
+						setUser({ email: currentUser.email });
+						setFullName(userData.fullName || "");
 						setUsername(userData.username || "");
 						setBio(userData.bio || "");
+						setLocation(userData.location || "");
+						setCompany(userData.company || "");
+						setSkills(Array.isArray(userData.skills) ? userData.skills.join(", ") : "");
+						setLinks({
+							github: userData.links?.github || "",
+							linkedin: userData.links?.linkedin || "",
+							twitter: userData.links?.twitter || "",
+							portfolio: userData.links?.portfolio || "",
+						});
 						setApiKey(userData.apiKey || "");
 					} else {
 						// If doc doesn't exist, we might just have a raw auth user
@@ -85,24 +109,103 @@ const ProfileSettings = () => {
 		fetchUserData();
 	}, []);
 
-	const handleSaveChanges = async () => {
+	const handleCancelPublic = () => {
+		if (userDocData) {
+			setFullName(userDocData.fullName || "");
+			setUsername(userDocData.username || "");
+			setBio(userDocData.bio || "");
+			setLocation(userDocData.location || "");
+			setCompany(userDocData.company || "");
+		}
+		setIsEditingPublic(false);
+	};
+
+	const handleCancelDev = () => {
+		if (userDocData) {
+			setSkills(Array.isArray(userDocData.skills) ? userDocData.skills.join(", ") : "");
+			setLinks({
+				github: userDocData.links?.github || "",
+				linkedin: userDocData.links?.linkedin || "",
+				twitter: userDocData.links?.twitter || "",
+				portfolio: userDocData.links?.portfolio || "",
+			});
+		}
+		setIsEditingDev(false);
+	};
+
+	const handleSavePublic = async () => {
 		setSaving(true);
 		setSuccessMsg("");
 		try {
 			const currentUser = auth.currentUser;
 			if (currentUser) {
 				const userDocRef = doc(db, "users", currentUser.uid);
-				// Note: Using setDoc with merge:true is often safer if the doc might not exist yet
-				await updateDoc(userDocRef, {
+				const updatedProfile = {
+					fullName,
 					username,
+					usernameIsDefault: false,
 					bio,
-				});
-				setSuccessMsg("Profile updated successfully!");
+					location,
+					company,
+				};
+
+				await updateDoc(userDocRef, updatedProfile);
+				
+				// Update local original copy
+				setUserDocData((prev) => ({
+					...prev,
+					...updatedProfile,
+				}));
+
+				setSuccessMsg("Public info updated successfully!");
+				setIsEditingPublic(false);
 				setTimeout(() => setSuccessMsg(""), 3000);
 			}
 		} catch (err) {
 			console.log(err);
-			setError("Failed to save changes.");
+			setError("Failed to save public info.");
+		} finally {
+			setSaving(false);
+		}
+	};
+
+	const handleSaveDev = async () => {
+		setSaving(true);
+		setSuccessMsg("");
+		try {
+			const currentUser = auth.currentUser;
+			if (currentUser) {
+				const userDocRef = doc(db, "users", currentUser.uid);
+				const parsedSkills = skills
+					.split(",")
+					.map((s) => s.trim())
+					.filter(Boolean);
+
+				const updatedProfile = {
+					skills: parsedSkills,
+					links: {
+						github: links.github.trim(),
+						linkedin: links.linkedin.trim(),
+						twitter: links.twitter.trim(),
+						portfolio: links.portfolio.trim(),
+					},
+				};
+
+				await updateDoc(userDocRef, updatedProfile);
+				
+				// Update local original copy
+				setUserDocData((prev) => ({
+					...prev,
+					...updatedProfile,
+				}));
+
+				setSuccessMsg("Developer info updated successfully!");
+				setIsEditingDev(false);
+				setTimeout(() => setSuccessMsg(""), 3000);
+			}
+		} catch (err) {
+			console.log(err);
+			setError("Failed to save dev info.");
 		} finally {
 			setSaving(false);
 		}
@@ -202,7 +305,7 @@ const ProfileSettings = () => {
 			)}
 
 			{/* ==============================
-          CARD 1: PUBLIC PROFILE
+          CARD 1: PUBLIC INFO
       ============================== */}
 			<Card variant="naked">
 				<h2 className="font-headline font-black text-xl border-b border-primary/20 pb-2 mb-4 uppercase">
@@ -237,9 +340,58 @@ const ProfileSettings = () => {
 							type="text"
 							id="username"
 							value={username}
+							disabled={!isEditingPublic}
 							onChange={(e) => setUsername(e.target.value)}
-							className="neo-input w-full"
+							className={`w-full ${!isEditingPublic ? "neo-input-disabled text-on-surface/50 cursor-not-allowed" : "neo-input"}`}
 							placeholder="How should we call you?"
+						/>
+					</div>
+
+					{/* Full Name */}
+					<div className="form-control">
+						<label className="label" htmlFor="fullName">
+							<span className="label-text font-label font-bold text-xs uppercase tracking-wider text-base-content/50">Full Name</span>
+						</label>
+						<input
+							type="text"
+							id="fullName"
+							value={fullName}
+							disabled={!isEditingPublic}
+							onChange={(e) => setFullName(e.target.value)}
+							className={`w-full ${!isEditingPublic ? "neo-input-disabled text-on-surface/50 cursor-not-allowed" : "neo-input"}`}
+							placeholder="John Doe"
+						/>
+					</div>
+
+					{/* Location */}
+					<div className="form-control">
+						<label className="label" htmlFor="location">
+							<span className="label-text font-label font-bold text-xs uppercase tracking-wider text-base-content/50">Location</span>
+						</label>
+						<input
+							type="text"
+							id="location"
+							value={location}
+							disabled={!isEditingPublic}
+							onChange={(e) => setLocation(e.target.value)}
+							className={`w-full ${!isEditingPublic ? "neo-input-disabled text-on-surface/50 cursor-not-allowed" : "neo-input"}`}
+							placeholder="Lagos, Nigeria"
+						/>
+					</div>
+
+					{/* Company */}
+					<div className="form-control md:col-span-2">
+						<label className="label" htmlFor="company">
+							<span className="label-text font-label font-bold text-xs uppercase tracking-wider text-base-content/50">Company</span>
+						</label>
+						<input
+							type="text"
+							id="company"
+							value={company}
+							disabled={!isEditingPublic}
+							onChange={(e) => setCompany(e.target.value)}
+							className={`w-full ${!isEditingPublic ? "neo-input-disabled text-on-surface/50 cursor-not-allowed" : "neo-input"}`}
+							placeholder="Google"
 						/>
 					</div>
 
@@ -251,21 +403,159 @@ const ProfileSettings = () => {
 						<textarea
 							id="bio"
 							value={bio}
+							disabled={!isEditingPublic}
 							onChange={(e) => setBio(e.target.value)}
-							className="neo-input h-32 w-full resize-none font-body"
+							className={`h-32 w-full resize-none font-body ${!isEditingPublic ? "neo-input-disabled text-on-surface/50 cursor-not-allowed" : "neo-input"}`}
 							placeholder="Tell us about your coding journey..."
 						></textarea>
 					</div>
 				</div>
 
-				<div className="flex justify-end mt-6">
-					<PopButton
-						onClick={handleSaveChanges}
-						variant="primary"
-						disabled={saving}
-					>
-						{saving ? "Saving Changes..." : "Save Changes"}
-					</PopButton>
+				<div className="flex justify-end gap-3 mt-6">
+					{!isEditingPublic ? (
+						<PopButton
+							onClick={() => setIsEditingPublic(true)}
+							variant="default"
+						>
+							Edit Public Info
+						</PopButton>
+					) : (
+						<>
+							<PopButton
+								onClick={handleCancelPublic}
+								variant="default"
+								disabled={saving}
+							>
+								Cancel
+							</PopButton>
+							<PopButton
+								onClick={handleSavePublic}
+								variant="primary"
+								disabled={saving}
+							>
+								{saving ? "Saving..." : "Save Public Info"}
+							</PopButton>
+						</>
+					)}
+				</div>
+			</Card>
+
+			{/* ==============================
+          CARD 2: DEV INFO
+      ============================== */}
+			<Card variant="naked">
+				<h2 className="font-headline font-black text-xl border-b border-primary/20 pb-2 mb-4 uppercase">
+					Dev Info
+				</h2>
+
+				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+					{/* Skills */}
+					<div className="form-control md:col-span-2">
+						<label className="label" htmlFor="skills">
+							<span className="label-text font-label font-bold text-xs uppercase tracking-wider text-base-content/50">Skills (comma-separated)</span>
+						</label>
+						<input
+							type="text"
+							id="skills"
+							value={skills}
+							disabled={!isEditingDev}
+							onChange={(e) => setSkills(e.target.value)}
+							className={`w-full ${!isEditingDev ? "neo-input-disabled text-on-surface/50 cursor-not-allowed" : "neo-input"}`}
+							placeholder="React, NodeJS, Firebase"
+						/>
+					</div>
+
+					{/* GitHub */}
+					<div className="form-control">
+						<label className="label" htmlFor="github">
+							<span className="label-text font-label font-bold text-xs uppercase tracking-wider text-base-content/50">GitHub URL</span>
+						</label>
+						<input
+							type="url"
+							id="github"
+							value={links.github}
+							disabled={!isEditingDev}
+							onChange={(e) => setLinks({ ...links, github: e.target.value })}
+							className={`w-full ${!isEditingDev ? "neo-input-disabled text-on-surface/50 cursor-not-allowed" : "neo-input"}`}
+							placeholder="https://github.com/username"
+						/>
+					</div>
+
+					{/* LinkedIn */}
+					<div className="form-control">
+						<label className="label" htmlFor="linkedin">
+							<span className="label-text font-label font-bold text-xs uppercase tracking-wider text-base-content/50">LinkedIn URL</span>
+						</label>
+						<input
+							type="url"
+							id="linkedin"
+							value={links.linkedin}
+							disabled={!isEditingDev}
+							onChange={(e) => setLinks({ ...links, linkedin: e.target.value })}
+							className={`w-full ${!isEditingDev ? "neo-input-disabled text-on-surface/50 cursor-not-allowed" : "neo-input"}`}
+							placeholder="https://linkedin.com/in/username"
+						/>
+					</div>
+
+					{/* Twitter / X */}
+					<div className="form-control">
+						<label className="label" htmlFor="twitter">
+							<span className="label-text font-label font-bold text-xs uppercase tracking-wider text-base-content/50">Twitter / X URL</span>
+						</label>
+						<input
+							type="url"
+							id="twitter"
+							value={links.twitter}
+							disabled={!isEditingDev}
+							onChange={(e) => setLinks({ ...links, twitter: e.target.value })}
+							className={`w-full ${!isEditingDev ? "neo-input-disabled text-on-surface/50 cursor-not-allowed" : "neo-input"}`}
+							placeholder="https://x.com/username"
+						/>
+					</div>
+
+					{/* Portfolio */}
+					<div className="form-control">
+						<label className="label" htmlFor="portfolio">
+							<span className="label-text font-label font-bold text-xs uppercase tracking-wider text-base-content/50">Portfolio Website</span>
+						</label>
+						<input
+							type="url"
+							id="portfolio"
+							value={links.portfolio}
+							disabled={!isEditingDev}
+							onChange={(e) => setLinks({ ...links, portfolio: e.target.value })}
+							className={`w-full ${!isEditingDev ? "neo-input-disabled text-on-surface/50 cursor-not-allowed" : "neo-input"}`}
+							placeholder="https://myportfolio.dev"
+						/>
+					</div>
+				</div>
+
+				<div className="flex justify-end gap-3 mt-6">
+					{!isEditingDev ? (
+						<PopButton
+							onClick={() => setIsEditingDev(true)}
+							variant="default"
+						>
+							Edit Dev Info
+						</PopButton>
+					) : (
+						<>
+							<PopButton
+								onClick={handleCancelDev}
+								variant="default"
+								disabled={saving}
+							>
+								Cancel
+							</PopButton>
+							<PopButton
+								onClick={handleSaveDev}
+								variant="primary"
+								disabled={saving}
+							>
+								{saving ? "Saving..." : "Save Dev Info"}
+							</PopButton>
+						</>
+					)}
 				</div>
 			</Card>
 
