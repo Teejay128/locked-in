@@ -28,7 +28,17 @@ exports.onEntryCreated = onDocumentCreated(
 
 		const { userId } = event.params;
 		const newEntry = snapshot.data();
-		const entryDate = newEntry.date;
+		
+		let entryDate = newEntry.date;
+		if (!entryDate && newEntry.createdAt) {
+			const dateObj = typeof newEntry.createdAt.toDate === "function"
+				? newEntry.createdAt.toDate()
+				: new Date(newEntry.createdAt);
+			entryDate = dateObj.toISOString().split("T")[0];
+		}
+		if (!entryDate) {
+			entryDate = new Date().toISOString().split("T")[0];
+		}
 
 		const userRef = db.collection("users").doc(userId);
 
@@ -39,7 +49,9 @@ exports.onEntryCreated = onDocumentCreated(
 			const userData = userDoc.data();
 			const lastDate = userData.lastEntryDate;
 
-			if (lastDate === entryDate) {
+			// If we have a previous entry date and this entry is on or before that date,
+			// just increment totalEntries without altering the current streak.
+			if (lastDate && entryDate <= lastDate) {
 				t.update(userRef, {
 					totalEntries: admin.firestore.FieldValue.increment(1),
 				});
@@ -53,9 +65,12 @@ exports.onEntryCreated = onDocumentCreated(
 				newStreak = (userData.currentStreak || 0) + 1;
 			}
 
+			const longestStreak = Math.max(userData.longestStreak || 0, newStreak);
+
 			// --- 3. COMMIT UPDATE ---
 			t.update(userRef, {
 				currentStreak: newStreak,
+				longestStreak: longestStreak,
 				lastEntryDate: entryDate,
 				totalEntries: admin.firestore.FieldValue.increment(1),
 			});
@@ -68,17 +83,18 @@ exports.onEntryCreated = onDocumentCreated(
 exports.onUserSignUp = functions.auth.user().onCreate(async (user) => {
 	const { uid, email } = user;
 
-	let defaultUsername = email
+	let defaultUsername = user.displayName || (email
 		? email.split("@")[0]
-		: "User_" + uid.substring(0, 5);
+		: "User_" + uid.substring(0, 5));
 
 	// Default Data
 	const newProfile = {
-		email: email,
+		email: email || "",
 		username: defaultUsername,
 		usernameIsDefault: true,
 		createdAt: admin.firestore.FieldValue.serverTimestamp(),
 		currentStreak: 0,
+		longestStreak: 0,
 		totalEntries: 0,
 		tier: "free",
 		platform: "web",
@@ -97,31 +113,115 @@ exports.generateDailyQuote = onSchedule(
 	{ schedule: "every day 07:00", secrets: [geminiApiKey] },
 	async (event) => {
 		try {
-			const recentQuotesSnapshot = await db
-				.collection("quotes")
-				.orderBy("createdAt", "desc")
-				.limit(3)
-				.get();
+			const today = new Date();
+			const todayStr = today.toISOString().split("T")[0];
+			const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
 
-			const recentQuotes = recentQuotesSnapshot.docs
-				.map((doc) => doc.data().quote)
-				.join(" | ");
+			let quoteText = "";
+			let trendTopic = null;
+			let trendContext = null;
+			let trendSources = null;
 
-			// GENERATE QUOTE
-			const motivationalQuote = generateQuote(recentQuotes);
+			if (dayOfWeek === 0) {
+				// Sunday quote is a simple default
+				quoteText =
+					"Sunday is for rest and reflection. Prepare yourself for the week ahead!";
+			} else {
+				// Monday - Saturday: Fetch latest weekly summary
+				const weeklySummarySnapshot = await db
+					.collection("weekly_summaries")
+					.orderBy("createdAt", "desc")
+					.limit(1)
+					.get();
 
-			// SAVE TO FIRESTORE
-			const today = new Date().toISOString().split("T")[0];
+				let dayTrend = null;
+				if (!weeklySummarySnapshot.empty) {
+					const weeklySummary = weeklySummarySnapshot.docs[0].data();
+					dayTrend = (weeklySummary.trendSummaries || []).find(
+						(t) => t.day === dayOfWeek,
+					);
+				}
+
+				// Fetch 3 most recent quotes to avoid duplicates
+				const recentQuotesSnapshot = await db
+					.collection("quotes")
+					.orderBy("createdAt", "desc")
+					.limit(3)
+					.get();
+
+				const recentQuotes = recentQuotesSnapshot.docs
+					.map((doc) => doc.data().quote)
+					.join(" | ");
+
+				const ai = genkit({
+					plugins: [googleAI({ apiKey: geminiApiKey.value() })],
+				});
+				const aiModel = googleAI.model("gemini-2.5-flash-lite");
+
+				if (dayTrend) {
+					trendTopic = dayTrend.topic;
+					trendContext = dayTrend.context || "";
+					trendSources = dayTrend.sources || [];
+					const prompt = `
+						You are a motivational quote assistant.
+						Generate a powerful, inspiring daily motivational quote inspired by this trending topic: "${dayTrend.topic}".
+						Here is the context about this trend: "${dayTrend.context}".
+
+						To ensure variety, avoid writing quotes similar to these recent quotes:
+						${recentQuotes}
+
+						Requirements:
+						- The quote must be highly motivational, punchy, and professional.
+						- Make a metaphorical or thematic connection to the trend if appropriate, but keep it accessible.
+						- Output ONLY the quote itself. Do not include any JSON, quotation marks around the whole text, explanations, or metadata.
+					`;
+					const response = await ai.generate({
+						model: aiModel,
+						prompt: prompt,
+					});
+					quoteText = response.text.trim();
+				} else {
+					// Fallback if no trend context is available for this day
+					const prompt = `
+						You are a motivational quote assistant.
+						Generate a powerful, inspiring daily motivational quote.
+
+						To ensure variety, avoid writing quotes similar to these recent quotes:
+						${recentQuotes}
+
+						Requirements:
+						- The quote must be highly motivational, punchy, and professional.
+						- Output ONLY the quote itself. Do not include any JSON, quotation marks around the whole text, explanations, or metadata.
+					`;
+					const response = await ai.generate({
+						model: aiModel,
+						prompt: prompt,
+					});
+					quoteText = response.text.trim();
+				}
+			}
+
+			// Clean quoteText by stripping surrounding quotes if Gemini accidentally outputs them
+			quoteText = quoteText.replace(/^["']|["']$/g, "").trim();
+
+			// Save to Firestore
 			const newQuote = {
-				quote: text,
-				createdAt: FieldValue.serverTimestamp(),
+				quote: quoteText,
+				createdAt: admin.firestore.FieldValue.serverTimestamp(),
 			};
+			if (trendTopic) {
+				newQuote.trendTopic = trendTopic;
+				newQuote.trendContext = trendContext;
+				newQuote.trendSources = trendSources;
+			}
 
-			await db.collection("quotes").doc(today).set(newQuote);
+			await db.collection("quotes").doc(todayStr).set(newQuote);
 
 			// Send to discord
-			await sendDiscordMessage(text);
-			console.log(`Successfully generated quote for ${today}: ${text}`);
+			await sendDiscordMessage(quoteText);
+			console.log(
+				`Successfully generated quote for ${todayStr}: ${quoteText}`,
+			);
 			return null;
 		} catch (error) {
 			console.error("Error generating daily quote:", error);
@@ -187,12 +287,21 @@ exports.synthesizeWeeklyTrends = onSchedule(
 			}
 
 			const aggregatedWeeklyTrends = aggregator(weeklyTrends);
+
+			// Map top 6 trends to Mon-Sat (1 to 6)
+			const weeklyTrendsWithDays = aggregatedWeeklyTrends.map(
+				(trend, idx) => ({
+					...trend,
+					day: idx + 1,
+				}),
+			);
+
 			const ai = genkit({
 				plugins: [googleAI({ apiKey: geminiApiKey.value() })],
 			});
 			const aiModel = googleAI.model("gemini-2.5-flash-lite");
 			const trendSummaries = await synthesizeTrends(
-				aggregatedWeeklyTrends,
+				weeklyTrendsWithDays,
 				ai,
 				aiModel,
 			);
@@ -203,11 +312,10 @@ exports.synthesizeWeeklyTrends = onSchedule(
 				day: "numeric",
 			});
 
+			// Save to top-level weekly_summaries collection
 			await db
-				.collection("trends")
-				.doc(endDate)
-				.collection("summaries")
-				.doc(summaryDocName)
+				.collection("weekly_summaries")
+				.doc(`weekly_${endDate}`)
 				.set({
 					date: endDate,
 					displayDate: summaryDocName,
